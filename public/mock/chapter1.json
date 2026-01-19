@@ -1,0 +1,153 @@
+{
+  "chapterId": "chapter-1",
+  "title": "Chapter One",
+  "items": [
+    {
+      "id": "s1",
+      "zhLines": [
+        "我的名字是以实玛利。"
+      ],
+      "enLines": [
+        "MY NAME is ISHMAEL."
+      ]
+    },
+    {
+      "id": "s2",
+      "zhLines": [
+        "我可喜欢大海啦",
+        "这是我超棒的冒险故事",
+        "其中的一个哦！"
+      ],
+      "enLines": [
+        "I love THE OCEAN",
+        "and THIS is A STORY",
+        "about one of MY greatest",
+        "ADVENTURES."
+      ]
+    },
+    {
+      "id": "s3",
+      "zhLines": [
+        "在我决定踏上旅程的那一刻",
+        "故事就开始了"
+      ],
+      "enLines": [
+        "IT all started when I decided",
+        "to go on A JOURNEY."
+      ]
+    },
+    {
+      "id": "s4",
+      "zhLines": [
+        "你知道吗？有时候",
+        "我会感到有点烦躁不安",
+        "我想去看看世界",
+        "感受拂面而来、咸咸的海风"
+      ],
+      "enLines": [
+        "YOU see, EVERY I get",
+        "A FEELING — A BIT restless like",
+        "I need to see THE WORLD",
+        "and feel THE WIND on MY FACE."
+      ]
+    },
+    {
+      "id": "s5",
+      "zhLines": [
+        "于是，我把我的小行李箱装满",
+        "前往海边的小镇"
+      ],
+      "enLines": [
+        "So, I packed MY THINGS and ",
+        "headed to A TOWN by THE SEA."
+      ]
+    },
+    {
+      "id": "s5",
+      "zhLines": [
+        "小镇的海边停满了",
+        "大大小小的船只",
+        "还有勇敢的水手们讲述",
+        "他们在远方的历险故事"
+      ],
+     
+      "enLines": [
+        "THE TOWN was filled with",
+        "SHIPS big and small",
+        "and SAILORS with STORIES",
+        "of brave ADVENTURES",
+        "and faraway PLACES."
+      ]
+    }
+  ],
+  "interactiveWords": [
+    "i",
+    "me",
+    "my",
+    "you",
+    "it",
+    "they",
+    "this",
+    "one",
+    "name",
+    "ishmael",
+    "ocean",
+    "story",
+    "adventures",
+    "journey",
+    "feeling",
+    "people",
+    "walks",
+    "way",
+    "sea",
+    "a",
+    "bit",
+    "the",
+    "world",
+    "wind",
+    "face",
+    "things",
+    "town",
+    "ships",
+    "sailors",
+    "stories",
+    "places",
+    "one"
+  ],
+  "audio": {
+    "baseUrl": "/audio/",
+    "manifest": {
+      "i": "i_v1.mp3",
+      "me": "me_v1.mp3",
+      "my": "my_v1.mp3",
+      "you": "you_v1.mp3",
+      "it": "it_v1.mp3",
+      "they": "they_v1.mp3",
+      "this": "this_v1.mp3",
+      "one": "one_v1.mp3",
+      "name": "name_v1.mp3",
+      "ishmael": "ishmael_v1.mp3",
+      "ocean": "ocean_v1.mp3",
+      "story": "story_v1.mp3",
+      "adventures": "adventures_v1.mp3",
+      "journey": "journey_v1.mp3",
+      "feeling": "feeling_v1.mp3",
+      "people": "people_v1.mp3",
+      "walks": "walks_v1.mp3",
+      "way": "way_v1.mp3",
+      "sea": "sea_v1.mp3",
+      "a": "a_v1.mp3",
+      "bit": "bit_v1.mp3",
+      "the": "the_v1.mp3",
+      "world": "world_v1.mp3",
+      "wind": "wind_v1.mp3",
+      "face": "face_v1.mp3",
+      "things": "things_v1.mp3",
+      "town": "town_v1.mp3",
+      "ships": "ships_v1.mp3",
+      "sailors": "sailors_v1.mp3",
+      "stories": "stories_v1.mp3",
+      "places": "places_v1.mp3"
+    }
+  }
+}
