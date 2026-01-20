@@ -6,6 +6,10 @@ const COMPLETED_KEY = 'cp_survey_completed';
 const SKIPPED_KEY = 'cp_survey_skipped';
 const ANSWER_KEY = 'cp_survey_answer';
 
+const emit = defineEmits<{
+  (e: 'next'): void;
+}>();
+
 const modalState = ref<ModalState>('closed');
 const answer = ref('');
 const textareaRef = ref<HTMLTextAreaElement | null>(null);
@@ -58,7 +62,10 @@ const closeModal = () => {
 };
 
 const openSurvey = () => {
-  if (hasCompleted() || hasSkippedSession()) return;
+  if (hasCompleted() || hasSkippedSession()) {
+    emit('next');
+    return;
+  }
   modalState.value = 'consent';
 };
 
@@ -137,16 +144,20 @@ onBeforeUnmount(() => {
       <div class="welcome-modal__overlay" aria-hidden="true"></div>
       <div
         class="welcome-dialog"
-        :class="{ 'welcome-dialog--thanks': isThanks }"
+        :class="{
+          'welcome-dialog--thanks': isThanks,
+          'welcome-dialog--consent': modalState === 'consent'
+        }"
         role="dialog"
         aria-modal="true"
         @click="onThanksClick"
       >
         <template v-if="modalState === 'consent'">
-          <p class="welcome-dialog__eyebrow">在继续之前，</p>
-          <div class="welcome-dialog__body">
-            <p class="welcome-dialog__text">我们正在测试一个非常早期的版本。</p>
-            <p class="welcome-dialog__text">您愿意回答一个简单的问题吗？</p>
+          <p class="welcome-dialog__eyebrow">在继续之前</p>
+          <div class="welcome-dialog__body" style="height: 103px;">
+            <p class="welcome-dialog__text">我们正在测试一个</p>
+            <p class="welcome-dialog__text">非常早期的版本</p>
+            <p class="welcome-dialog__text">你愿意回答一个简单的问题吗？</p>
           </div>
           <div class="welcome-dialog__actions">
             <button
@@ -166,7 +177,6 @@ onBeforeUnmount(() => {
           </div>
         </template>
         <template v-else-if="modalState === 'question'">
-          <p class="welcome-dialog__eyebrow">在继续之前</p>
           <div class="welcome-dialog__body">
             <p class="welcome-dialog__question">当你第一次打开这个页面时，</p>
             <p class="welcome-dialog__question">你的第一反应是什么？</p>
@@ -311,7 +321,6 @@ onBeforeUnmount(() => {
   width: min(86vw, 320px);
   background: #9fc225;
   border-radius: 24px;
-  padding: 22px 20px 20px;
   color: #f8f6e6;
   text-align: center;
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.16);
@@ -319,6 +328,8 @@ onBeforeUnmount(() => {
   flex-direction: column;
   gap: 14px;
   font-family: "FZCuYuan", "Gotham Rounded";
+  height: 372px;
+  padding: 50px 16px;
 }
 
 .welcome-dialog--thanks {
@@ -326,6 +337,11 @@ onBeforeUnmount(() => {
   min-height: 220px;
   justify-content: center;
   cursor: pointer;
+}
+
+.welcome-dialog--consent {
+  padding: 50px 16px;
+  height: 372px;
 }
 
 .welcome-dialog__eyebrow {
@@ -344,15 +360,14 @@ onBeforeUnmount(() => {
   margin: 0;
   font-size: 16px;
   font-weight: 400;
-  color: #f8f6b3;
-  line-height: 1.5;
+  color: #A8CE20;
 }
 
 .welcome-dialog__question {
   margin: 0;
-  font-size: 16px;
+  font-size: 20px;
   font-weight: 400;
-  color: #f8f6b3;
+  color: #FAFF98;
   line-height: 1.5;
 }
 
@@ -389,7 +404,7 @@ onBeforeUnmount(() => {
 .welcome-dialog__actions {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 20px;
 }
 
 .welcome-dialog__button {
@@ -414,9 +429,36 @@ onBeforeUnmount(() => {
 }
 
 .welcome-dialog__button--ghost {
-  border: 4px solid rgba(248, 246, 230, 0.9);
+  border: 4px solid #ffffff;
   background: transparent;
   color: #f8f6e6;
+}
+
+.welcome-dialog--consent .welcome-dialog__eyebrow {
+  font-size: 12px;
+  letter-spacing: 0.28em;
+}
+
+.welcome-dialog--consent .welcome-dialog__text {
+  font-size: 20px;
+  font-weight: 400;
+  color: #FAFF98;
+}
+
+.welcome-dialog--consent .welcome-dialog__button {
+  width: 100%;
+  border: 3px solid #ffffff;
+  background: transparent;
+  color: #FAFF98;
+  box-shadow: none;
+  padding: 9px 16px;
+  font-weight: 400;
+  font-size: 17px;
+}
+
+.welcome-dialog--consent .welcome-dialog__button:active {
+  transform: translateY(1px);
+  opacity: 0.92;
 }
 
 .welcome-dialog__button[disabled] {
@@ -443,7 +485,7 @@ onBeforeUnmount(() => {
   margin: 0;
   font-size: 23px;
   letter-spacing: 0.1em;
-  color: #f8f6b3;
+  color: #FAFF98;
   font-weight: 700;
 }
 </style>
