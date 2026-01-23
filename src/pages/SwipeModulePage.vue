@@ -60,7 +60,7 @@ const onTouchCancel = () => {
       :style="{ transform: `translateX(-${activeIndex * 100}%)` }"
     >
       <div class="slide-module__slide">
-        <WelcomePage @next="goNext" />
+        <WelcomePage />
       </div>
       <div class="slide-module__slide">
         <StartPage @next="goNext" />

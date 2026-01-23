@@ -1,112 +1,51 @@
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, ref } from 'vue';
+import { getSurveyEnv } from '@/utils/surveyEnv';
+import { getSurveySource } from '@/utils/surveySource';
 
-type ModalState = 'closed' | 'consent' | 'question' | 'thanks';
-const COMPLETED_KEY = 'cp_survey_completed';
-const SKIPPED_KEY = 'cp_survey_skipped';
-const ANSWER_KEY = 'cp_survey_answer';
+const SESSION_KEY = 'cp_survey_session';
+const CTA_KEY = 'cp_survey_cta';
+const API_ENDPOINT = import.meta.env.VITE_FEEDBACK_ENDPOINT || '/api/feedback.php';
 
-const emit = defineEmits<{
-  (e: 'next'): void;
-}>();
-
-const modalState = ref<ModalState>('closed');
-const answer = ref('');
-const textareaRef = ref<HTMLTextAreaElement | null>(null);
-let thanksTimer: number | null = null;
-
-const isOpen = computed(() => modalState.value !== 'closed');
-const isThanks = computed(() => modalState.value === 'thanks');
-const canSubmit = computed(() => answer.value.trim().length > 0);
-
-const hasCompleted = () => {
+const getSessionId = () => {
   try {
-    return localStorage.getItem(COMPLETED_KEY) === 'true';
+    const existing = sessionStorage.getItem(SESSION_KEY);
+    if (existing) return existing;
+    const generated =
+      typeof crypto !== 'undefined' && 'randomUUID' in crypto
+        ? crypto.randomUUID()
+        : `s_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+    sessionStorage.setItem(SESSION_KEY, generated);
+    return generated;
+  } catch {
+    return `s_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+  }
+};
+
+const postFeedback = async (payload: Record<string, unknown>) => {
+  try {
+    const response = await fetch(API_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    return response.ok;
   } catch {
     return false;
   }
 };
 
-const hasSkippedSession = () => {
+const onCtaClick = () => {
   try {
-    return sessionStorage.getItem(SKIPPED_KEY) === 'true';
-  } catch {
-    return false;
-  }
-};
-
-const setCompleted = () => {
-  try {
-    localStorage.setItem(COMPLETED_KEY, 'true');
+    sessionStorage.setItem(CTA_KEY, 'true');
   } catch {}
+  void postFeedback({
+    action: 'cta',
+    session_id: getSessionId(),
+    cta_clicked: 1,
+    source: getSurveySource(),
+    env: getSurveyEnv()
+  });
 };
-
-const setSkippedSession = () => {
-  try {
-    sessionStorage.setItem(SKIPPED_KEY, 'true');
-  } catch {}
-};
-
-const setStoredAnswer = (value: string) => {
-  try {
-    localStorage.setItem(ANSWER_KEY, value);
-  } catch {}
-};
-
-const closeModal = () => {
-  modalState.value = 'closed';
-  if (thanksTimer) {
-    window.clearTimeout(thanksTimer);
-    thanksTimer = null;
-  }
-};
-
-const openSurvey = () => {
-  if (hasCompleted() || hasSkippedSession()) {
-    emit('next');
-    return;
-  }
-  modalState.value = 'consent';
-};
-
-const onSkip = () => {
-  setSkippedSession();
-  closeModal();
-};
-
-const onConsent = () => {
-  modalState.value = 'question';
-  nextTick(() => textareaRef.value?.focus());
-};
-
-const startThanksTimer = () => {
-  if (thanksTimer) {
-    window.clearTimeout(thanksTimer);
-  }
-  thanksTimer = window.setTimeout(() => {
-    closeModal();
-  }, 3000);
-};
-
-const onSubmit = () => {
-  if (!canSubmit.value) return;
-  setStoredAnswer(answer.value.trim());
-  setCompleted();
-  answer.value = '';
-  modalState.value = 'thanks';
-  startThanksTimer();
-};
-
-const onThanksClick = () => {
-  if (!isThanks.value) return;
-  closeModal();
-};
-
-onBeforeUnmount(() => {
-  if (thanksTimer) {
-    window.clearTimeout(thanksTimer);
-  }
-});
 </script>
 
 <template>
@@ -135,76 +74,10 @@ onBeforeUnmount(() => {
           <p class="welcome-screen__copy-line">可以随时停止</p>
         </div>
       </div>
-      <button class="welcome-screen__cta" type="button" @click="openSurvey">
+      <button class="welcome-screen__cta" type="button" @click="onCtaClick">
         <span class="welcome-screen__cta-line">请点击这里开始试用吧</span>
         <span class="welcome-screen__cta-line">可先试用1至2页看看</span>
       </button>
-    </div>
-    <div v-if="isOpen" class="welcome-modal">
-      <div class="welcome-modal__overlay" aria-hidden="true"></div>
-      <div
-        class="welcome-dialog"
-        :class="{
-          'welcome-dialog--thanks': isThanks,
-          'welcome-dialog--consent': modalState === 'consent'
-        }"
-        role="dialog"
-        aria-modal="true"
-        @click="onThanksClick"
-      >
-        <template v-if="modalState === 'consent'">
-          <p class="welcome-dialog__eyebrow">在继续之前</p>
-          <div class="welcome-dialog__body" style="height: 103px;">
-            <p class="welcome-dialog__text">我们正在测试一个</p>
-            <p class="welcome-dialog__text">非常早期的版本</p>
-            <p class="welcome-dialog__text">你愿意回答一个简单的问题吗？</p>
-          </div>
-          <div class="welcome-dialog__actions">
-            <button
-              class="welcome-dialog__button welcome-dialog__button--primary"
-              type="button"
-              @click.stop="onConsent"
-            >
-              我愿意回答一个问题
-            </button>
-            <button
-              class="welcome-dialog__button welcome-dialog__button--ghost"
-              type="button"
-              @click.stop="onSkip"
-            >
-              跳过
-            </button>
-          </div>
-        </template>
-        <template v-else-if="modalState === 'question'">
-          <div class="welcome-dialog__body">
-            <p class="welcome-dialog__question">当你第一次打开这个页面时，</p>
-            <p class="welcome-dialog__question">你的第一反应是什么？</p>
-          </div>
-          <textarea
-            ref="textareaRef"
-            v-model="answer"
-            class="welcome-dialog__textarea"
-            rows="4"
-            placeholder="请用几句话随意写下你的第一感觉…"
-          ></textarea>
-          <p class="welcome-dialog__hint">没有对错，只是你的直觉反应</p>
-          <button
-            class="welcome-dialog__button welcome-dialog__button--ghost"
-            type="button"
-            :disabled="!canSubmit"
-            @click.stop="onSubmit"
-          >
-            提交
-          </button>
-        </template>
-        <template v-else>
-          <div class="welcome-dialog__div">
-            <p class="welcome-dialog__thanks">谢谢你!</p>
-            <p class="welcome-dialog__thanks-sub">THANK YOU!</p>
-          </div>
-        </template>
-      </div>
     </div>
   </section>
 </template>
@@ -296,196 +169,5 @@ onBeforeUnmount(() => {
 .welcome-screen__cta-line {
   margin: 0;
   display: block;
-}
-
-.welcome-modal {
-  position: fixed;
-  inset: 0;
-  z-index: 30;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-}
-
-.welcome-modal__overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(89, 122, 12, 0.3);
-  backdrop-filter: blur(2px);
-}
-
-.welcome-dialog {
-  position: relative;
-  z-index: 1;
-  width: min(86vw, 320px);
-  background: #9fc225;
-  border-radius: 24px;
-  color: #f8f6e6;
-  text-align: center;
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.16);
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  font-family: "FZCuYuan", "Gotham Rounded";
-  height: 372px;
-  padding: 50px 16px;
-}
-
-.welcome-dialog--thanks {
-  padding: 42px 20px;
-  min-height: 220px;
-  justify-content: center;
-  cursor: pointer;
-}
-
-.welcome-dialog--consent {
-  padding: 50px 16px;
-  height: 372px;
-}
-
-.welcome-dialog__eyebrow {
-  margin: 0;
-  font-size: 14px;
-  letter-spacing: 0.2em;
-  color: #FAFF98;
-}
-
-.welcome-dialog__body {
-  display: flex;
-  flex-direction: column;
-}
-
-.welcome-dialog__text {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 400;
-  color: #A8CE20;
-}
-
-.welcome-dialog__question {
-  margin: 0;
-  font-size: 20px;
-  font-weight: 400;
-  color: #FAFF98;
-  line-height: 1.5;
-}
-
-.welcome-dialog__textarea {
-  width: 100%;
-  min-height: 120px;
-  border-radius: 16px;
-  border: none;
-  padding: 12px 14px;
-  font-size: 14px;
-  line-height: 1.6;
-  color: #A8CE20;
-  background: #ffffff;
-  font-family: "FZCuYuan", "Gotham Rounded";
-  box-shadow: inset 0 2px 0 rgba(0, 0, 0, 0.08);
-  resize: none;
-}
-
-.welcome-dialog__textarea:focus {
-  outline: none;
-  box-shadow: inset 0 2px 0 rgba(0, 0, 0, 0.08);
-}
-
-.welcome-dialog__textarea::placeholder {
-  color: #A8CE20;
-}
-
-.welcome-dialog__hint {
-  margin: 0;
-  font-size: 12px;
-  color: #FAFF98;
-}
-
-.welcome-dialog__actions {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.welcome-dialog__button {
-  border-radius: 999px;
-  padding: 10px 16px;
-  font-size: 14px;
-  font-weight: 700;
-  font-family: "FZCuYuan", "Gotham Rounded";
-  cursor: pointer;
-  transition: transform 120ms ease, box-shadow 120ms ease, opacity 120ms ease;
-}
-
-.welcome-dialog__button:active {
-  transform: translateY(1px);
-}
-
-.welcome-dialog__button--primary {
-  border: none;
-  background: #f8f6e6;
-  color: #7eaa1a;
-  box-shadow: 0 6px 0 rgba(122, 150, 28, 0.4);
-}
-
-.welcome-dialog__button--ghost {
-  border: 4px solid #ffffff;
-  background: transparent;
-  color: #f8f6e6;
-}
-
-.welcome-dialog--consent .welcome-dialog__eyebrow {
-  font-size: 12px;
-  letter-spacing: 0.28em;
-}
-
-.welcome-dialog--consent .welcome-dialog__text {
-  font-size: 20px;
-  font-weight: 400;
-  color: #FAFF98;
-}
-
-.welcome-dialog--consent .welcome-dialog__button {
-  width: 100%;
-  border: 3px solid #ffffff;
-  background: transparent;
-  color: #FAFF98;
-  box-shadow: none;
-  padding: 9px 16px;
-  font-weight: 400;
-  font-size: 17px;
-}
-
-.welcome-dialog--consent .welcome-dialog__button:active {
-  transform: translateY(1px);
-  opacity: 0.92;
-}
-
-.welcome-dialog__button[disabled] {
-  opacity: 0.6;
-  cursor: default;
-  box-shadow: none;
-}
-
-.welcome-dialog__div {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  padding: 100px 0;
-}
-
-.welcome-dialog__thanks {
-  margin: 0;
-  font-size: 46px;
-  font-weight: 700;
-}
-
-.welcome-dialog__thanks-sub {
-  margin: 0;
-  font-size: 23px;
-  letter-spacing: 0.1em;
-  color: #FAFF98;
-  font-weight: 700;
 }
 </style>
