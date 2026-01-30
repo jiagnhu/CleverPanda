@@ -189,15 +189,15 @@ onBeforeUnmount(() => {
       <template v-else-if="modalState === 'question'">
         <p class="survey-dialog__eyebrow">在继续之前</p>
         <div class="survey-dialog__body">
-          <p class="survey-dialog__question">当你第一次打开这个页面时，</p>
-          <p class="survey-dialog__question">你的第一反应是什么？</p>
+          <p class="survey-dialog__question">当你看到这个页面时，</p>
+          <p class="survey-dialog__question">你觉得它可能是为谁准备的？</p>
         </div>
         <textarea
           ref="textareaRef"
           v-model="answer"
           class="survey-dialog__textarea"
           rows="4"
-          placeholder="请用几句话随意写下你的第一感觉…"
+          placeholder="请写下你的第一直觉想法…"
         ></textarea>
         <p class="survey-dialog__hint">没有对错，只是你的直觉反应</p>
         <p v-if="submitError" class="survey-dialog__error">{{ submitError }}</p>
