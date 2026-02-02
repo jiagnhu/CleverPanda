@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { getSurveyEnv } from '@/utils/surveyEnv';
 import { getSurveySource } from '@/utils/surveySource';
+import { POPUP_VERSION } from '@/utils/popupVersion';
 
 const SESSION_KEY = 'cp_survey_session';
 const CTA_KEY = 'cp_survey_cta';
@@ -43,7 +44,8 @@ const onCtaClick = () => {
     session_id: getSessionId(),
     cta_clicked: 1,
     source: getSurveySource(),
-    env: getSurveyEnv()
+    env: getSurveyEnv(),
+    popup_version: POPUP_VERSION
   });
 };
 </script>

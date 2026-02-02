@@ -51,6 +51,12 @@ $sourceRaw = isset($data['source']) ? strtolower(trim((string)$data['source'])) 
 $source = in_array($sourceRaw, ['internal', 'fiverr'], true) ? $sourceRaw : 'unknown';
 $envRaw = isset($data['env']) ? strtolower(trim((string)$data['env'])) : '';
 $env = in_array($envRaw, ['test', 'mvp'], true) ? $envRaw : 'unknown';
+$popupVersion = isset($data['popup_version']) ? trim((string)$data['popup_version']) : '';
+if ($popupVersion !== '') {
+  $popupVersion = substr($popupVersion, 0, 64);
+} else {
+  $popupVersion = null;
+}
 
 if ($sessionId === '' || strlen($sessionId) > 80) {
   http_response_code(400);
@@ -62,6 +68,9 @@ if ($action === 'submit' && $answer === '') {
   http_response_code(422);
   respond_error('answer_required');
   exit;
+}
+if ($action === 'submit' && $popupVersion === null) {
+  $popupVersion = 'v2_parent';
 }
 
 $configPath = __DIR__ . '/config.php';
@@ -110,11 +119,12 @@ try {
 
 try {
   $stmt = $pdo->prepare(
-    'INSERT INTO feedback (session_id, source, env, cta_clicked, answer, created_at, updated_at)
-     VALUES (:session_id, :source, :env, :cta_clicked, :answer, NOW(), NOW())
+    'INSERT INTO feedback (session_id, source, env, popup_version, cta_clicked, answer, created_at, updated_at)
+     VALUES (:session_id, :source, :env, :popup_version, :cta_clicked, :answer, NOW(), NOW())
      ON DUPLICATE KEY UPDATE
        source = VALUES(source),
        env = VALUES(env),
+       popup_version = COALESCE(VALUES(popup_version), popup_version),
        cta_clicked = GREATEST(cta_clicked, VALUES(cta_clicked)),
        answer = COALESCE(VALUES(answer), answer),
        updated_at = NOW()'
@@ -125,6 +135,7 @@ try {
     ':session_id' => $sessionId,
     ':source' => $source,
     ':env' => $env,
+    ':popup_version' => $popupVersion,
     ':cta_clicked' => $ctaClicked ? 1 : 0,
     ':answer' => $answerParam
   ]);

@@ -2,12 +2,14 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
 import { getSurveyEnv } from '@/utils/surveyEnv';
 import { getSurveySource } from '@/utils/surveySource';
+import { POPUP_VERSION } from '@/utils/popupVersion';
 
 type ModalState = 'closed' | 'consent' | 'question' | 'thanks';
+const SURVEY_VERSION = 'v2';
 const SESSION_KEY = 'cp_survey_session';
 const CTA_KEY = 'cp_survey_cta';
-const COMPLETED_KEY = 'cp_survey_completed';
-const ANSWER_KEY = 'cp_survey_answer';
+const COMPLETED_KEY = `cp_survey_completed_${SURVEY_VERSION}`;
+const ANSWER_KEY = `cp_survey_answer_${SURVEY_VERSION}`;
 const API_ENDPOINT = import.meta.env.VITE_FEEDBACK_ENDPOINT || '/api/feedback.php';
 
 const modalState = ref<ModalState>('closed');
@@ -20,7 +22,7 @@ let autoTimer: number | null = null;
 
 const isOpen = computed(() => modalState.value !== 'closed');
 const isThanks = computed(() => modalState.value === 'thanks');
-const canSubmit = computed(() => answer.value.trim().length > 0);
+const canSubmit = computed(() => answer.value.replace(/\s+/g, '').length > 0);
 
 const getSessionId = () => {
   try {
@@ -130,7 +132,8 @@ const onSubmit = () => {
       cta_clicked: hasCtaClicked() ? 1 : 0,
       answer: trimmed,
       source: getSurveySource(),
-      env: getSurveyEnv()
+      env: getSurveyEnv(),
+      popup_version: POPUP_VERSION
     });
     submitting.value = false;
     if (!ok) {
