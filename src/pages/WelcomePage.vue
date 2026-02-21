@@ -77,8 +77,8 @@ const onCtaClick = () => {
         </div>
       </div>
       <button class="welcome-screen__cta" type="button" @click="onCtaClick">
-        <span class="welcome-screen__cta-line">请点击这里开始试用吧</span>
-        <span class="welcome-screen__cta-line">可先试用1至2页看看</span>
+        <span class="welcome-screen__cta-line">点击这里先看一下</span>
+        <!-- <span class="welcome-screen__cta-line">可先试用1至2页看看</span> -->
       </button>
     </div>
   </section>

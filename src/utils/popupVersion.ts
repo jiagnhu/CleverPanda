@@ -1,1 +1,1 @@
-export const POPUP_VERSION = 'v2_parent';
+export const POPUP_VERSION = 'v3_parent';

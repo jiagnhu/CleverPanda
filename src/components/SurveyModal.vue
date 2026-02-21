@@ -5,7 +5,7 @@ import { getSurveySource } from '@/utils/surveySource';
 import { POPUP_VERSION } from '@/utils/popupVersion';
 
 type ModalState = 'closed' | 'consent' | 'question' | 'thanks';
-const SURVEY_VERSION = 'v2';
+const SURVEY_VERSION = 'v3.1';
 const SESSION_KEY = 'cp_survey_session';
 const CTA_KEY = 'cp_survey_cta';
 const COMPLETED_KEY = `cp_survey_completed_${SURVEY_VERSION}`;
