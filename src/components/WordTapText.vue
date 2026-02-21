@@ -8,6 +8,10 @@ const props = defineProps<{
   interactiveSet: Set<string>;
 }>();
 
+const emit = defineEmits<{
+  (e: 'interactive-click', canonical: string): void;
+}>();
+
 const tokenItems = computed(() =>
   tokenize(props.text).map((token) => {
     const canonical = canonicalize(token);
@@ -36,6 +40,7 @@ const triggerFlash = (index: number) => {
 const onActivate = (canonical: string, index: number) => {
   if (!canonical) return;
   triggerFlash(index);
+  emit('interactive-click', canonical);
   playWord(canonical);
 };
 

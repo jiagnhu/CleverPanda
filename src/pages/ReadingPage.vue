@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vu
 import BilingualLine from '@/components/BilingualLine.vue';
 import ProgressBar from '@/components/ProgressBar.vue';
 import { setAudioConfig, setUseLocalAudio } from '@/audio/player';
+import { createReadingTracker } from '@/tracking/readingTracker';
 
 const props = withDefaults(
   defineProps<{
@@ -54,6 +55,8 @@ const audioConfig = ref<{ baseUrl: string; manifest: Record<string, string> }>({
 });
 
 const hasLoaded = ref(false);
+const tracker = shallowRef<ReturnType<typeof createReadingTracker> | null>(null);
+const reachedSentence6 = ref(false);
 const precacheStatus = ref<'idle' | 'downloading' | 'done' | 'error'>('idle');
 const precacheProgress = ref({ done: 0, total: 0 });
 const precachePercent = computed(() => {
@@ -207,25 +210,66 @@ const onTouchCancel = () => {
   touchStartTime = 0;
 };
 
+const ensureTracker = () => {
+  if (tracker.value) return tracker.value;
+  tracker.value = createReadingTracker('/api/tracking.php');
+  return tracker.value;
+};
+
+const onInteractiveWordClick = () => {
+  tracker.value?.onWordClick();
+};
+
+const onVisibilityChange = () => {
+  tracker.value?.onVisibilityChange();
+};
+
+const onPageHide = () => {
+  tracker.value?.flushBestEffort();
+};
+
 onMounted(() => {
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.addEventListener('message', handleServiceWorkerMessage);
   }
+  document.addEventListener('visibilitychange', onVisibilityChange);
+  window.addEventListener('pagehide', onPageHide);
+  window.addEventListener('beforeunload', onPageHide);
 });
 
 onBeforeUnmount(() => {
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.removeEventListener('message', handleServiceWorkerMessage);
   }
+  document.removeEventListener('visibilitychange', onVisibilityChange);
+  window.removeEventListener('pagehide', onPageHide);
+  window.removeEventListener('beforeunload', onPageHide);
+  tracker.value?.flushBestEffort();
+  tracker.value?.dispose();
+  tracker.value = null;
+});
+
+watch(currentIndex, (index) => {
+  if (index < 5 || reachedSentence6.value) return;
+  reachedSentence6.value = true;
+  tracker.value?.onReachedSentence6();
 });
 
 watch(
   () => props.active,
   async (active) => {
-    if (!active || hasLoaded.value) return;
-    const loaded = await loadChapter();
-    if (loaded) {
-      hasLoaded.value = true;
+    if (active && !hasLoaded.value) {
+      const loaded = await loadChapter();
+      if (loaded) {
+        hasLoaded.value = true;
+      }
+    }
+    if (!hasLoaded.value) return;
+
+    const readingTracker = ensureTracker();
+    readingTracker.onPageActiveChange(active);
+    if (active && reachedSentence6.value) {
+      readingTracker.onReachedSentence6();
     }
   },
   { immediate: true }
@@ -256,6 +300,7 @@ watch(
           :zh="currentItem.zhLines"
           :en="currentItem.enLines"
           :interactiveSet="interactiveSet"
+          @interactive-click="onInteractiveWordClick"
         />
       </div>
     </div>

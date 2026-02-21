@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
+import { postJson } from '@/api/client';
 import { getSurveyEnv } from '@/utils/surveyEnv';
 import { getSurveySource } from '@/utils/surveySource';
 import { POPUP_VERSION } from '@/utils/popupVersion';
@@ -10,7 +11,6 @@ const SESSION_KEY = 'cp_survey_session';
 const CTA_KEY = 'cp_survey_cta';
 const COMPLETED_KEY = `cp_survey_completed_${SURVEY_VERSION}`;
 const ANSWER_KEY = `cp_survey_answer_${SURVEY_VERSION}`;
-const API_ENDPOINT = import.meta.env.VITE_FEEDBACK_ENDPOINT || '/api/feedback.php';
 
 const modalState = ref<ModalState>('closed');
 const answer = ref('');
@@ -49,11 +49,7 @@ const hasCtaClicked = () => {
 
 const postFeedback = async (payload: Record<string, unknown>) => {
   try {
-    const response = await fetch(API_ENDPOINT, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
+    const response = await postJson('/api/feedback.php', payload);
     return response.ok;
   } catch {
     return false;

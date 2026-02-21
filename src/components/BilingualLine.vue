@@ -6,6 +6,14 @@ defineProps<{
   en: string[];
   interactiveSet: Set<string>;
 }>();
+
+const emit = defineEmits<{
+  (e: 'interactive-click', canonical: string): void;
+}>();
+
+const onInteractiveClick = (canonical: string) => {
+  emit('interactive-click', canonical);
+};
 </script>
 
 <template>
@@ -22,6 +30,7 @@ defineProps<{
         :key="`en-${index}`"
         :text="line"
         :interactiveSet="interactiveSet"
+        @interactive-click="onInteractiveClick"
       />
     </div>
   </div>
