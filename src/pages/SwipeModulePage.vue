@@ -1,12 +1,17 @@
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useRouter } from 'vue-router';
 import WelcomePage from '@/pages/WelcomePage.vue';
 import StartPage from '@/pages/StartPage.vue';
 import InstructionPage from '@/pages/InstructionPage.vue';
 import ReadingPage from '@/pages/ReadingPage.vue';
+import { DEMO_BOOK_ID, getBookEntry } from '@/data/books';
 
 const slideCount = 4;
 const activeIndex = ref(0);
+const router = useRouter();
+const demoBook = getBookEntry(DEMO_BOOK_ID);
+const demoContentUrl = demoBook?.chapterUrl || '/mock/alice-001-ch1.json';
 
 const clampIndex = (index: number) => Math.max(0, Math.min(index, slideCount - 1));
 const goTo = (index: number) => {
@@ -51,6 +56,11 @@ const onTouchEnd = (event: TouchEvent) => {
 const onTouchCancel = () => {
   touchStartTime = 0;
 };
+
+const onDemoComplete = () => {
+  const bookId = demoBook?.bookId || DEMO_BOOK_ID;
+  void router.push({ name: 'book-success', params: { bookId } });
+};
 </script>
 
 <template>
@@ -69,7 +79,14 @@ const onTouchCancel = () => {
         <InstructionPage @next="goNext" />
       </div>
       <div class="slide-module__slide">
-        <ReadingPage :active="activeIndex === 3" @edge-prev="goPrev" @edge-next="goNext" />
+        <ReadingPage
+          :active="activeIndex === 3"
+          :content-url="demoContentUrl"
+          :demo-end-page="demoBook?.demoEndPage || 6"
+          @edge-prev="goPrev"
+          @edge-next="goNext"
+          @demo-complete="onDemoComplete"
+        />
       </div>
     </div>
   </main>

@@ -44,8 +44,19 @@ const getAnonymousUserId = () => {
 
 const clampDelta = (value: number) => (Number.isFinite(value) && value > 0 ? Math.floor(value) : 0);
 
+const isSameOriginUrl = (targetUrl: string) => {
+  if (typeof window === 'undefined') return true;
+  try {
+    const resolved = new URL(targetUrl, window.location.href);
+    return resolved.origin === window.location.origin;
+  } catch {
+    return true;
+  }
+};
+
 export const createReadingTracker = (path = '/api/tracking.php'): ReadingTracker => {
   const endpoint = buildApiUrl(path);
+  const canUseBeacon = isSameOriginUrl(endpoint);
   const sessionId = createId('s');
   const anonymousUserId = getAnonymousUserId();
 
@@ -155,7 +166,7 @@ export const createReadingTracker = (path = '/api/tracking.php'): ReadingTracker
 
     const body = JSON.stringify(payload);
     let sent = false;
-    if (typeof navigator !== 'undefined' && 'sendBeacon' in navigator) {
+    if (canUseBeacon && typeof navigator !== 'undefined' && 'sendBeacon' in navigator) {
       sent = navigator.sendBeacon(endpoint, new Blob([body], { type: 'application/json' }));
     }
     if (!sent) {
