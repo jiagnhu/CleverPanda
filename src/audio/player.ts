@@ -154,7 +154,11 @@ export async function playWord(word: string): Promise<void> {
     return;
   }
 
-  const fileName = audioManifest[canonical] ?? `${canonical}.mp3`;
+  const fileName = audioManifest[canonical];
+  if (!fileName) {
+    speakFallback(canonical);
+    return;
+  }
   const src = `${audioBaseUrl}${fileName}`;
 
   const audioEl = getAudio();

@@ -70,7 +70,6 @@
         "还有勇敢的水手们讲述",
         "他们在远方的历险故事"
       ],
-     
       "enLines": [
         "THE TOWN was filled with",
         "SHIPS big and small",
@@ -114,40 +113,48 @@
     "places",
     "one"
   ],
-  "audio": {
-    "baseUrl": "/audio/",
-    "manifest": {
-      "i": "i_v1.mp3",
-      "me": "me_v1.mp3",
-      "my": "my_v1.mp3",
-      "you": "you_v1.mp3",
-      "it": "it_v1.mp3",
-      "they": "they_v1.mp3",
-      "this": "this_v1.mp3",
-      "one": "one_v1.mp3",
-      "name": "name_v1.mp3",
-      "ishmael": "ishmael_v1.mp3",
-      "ocean": "ocean_v1.mp3",
-      "story": "story_v1.mp3",
-      "adventures": "adventures_v1.mp3",
-      "journey": "journey_v1.mp3",
-      "feeling": "feeling_v1.mp3",
-      "people": "people_v1.mp3",
-      "walks": "walks_v1.mp3",
-      "way": "way_v1.mp3",
-      "sea": "sea_v1.mp3",
-      "a": "a_v1.mp3",
-      "bit": "bit_v1.mp3",
-      "the": "the_v1.mp3",
-      "world": "world_v1.mp3",
-      "wind": "wind_v1.mp3",
-      "face": "face_v1.mp3",
-      "things": "things_v1.mp3",
-      "town": "town_v1.mp3",
-      "ships": "ships_v1.mp3",
-      "sailors": "sailors_v1.mp3",
-      "stories": "stories_v1.mp3",
-      "places": "places_v1.mp3"
+  "chapter": [
+    {
+      "number": 1,
+      "titleEnglish": "Chapter One",
+      "titleMandarin": "第一章",
+      "audio": {
+        "cacheKey": "demo-ch1-v1",
+        "baseUrl": "/audio/demo/ch1/",
+        "manifest": {
+          "i": "i_v1.mp3",
+          "me": "me_v1.mp3",
+          "my": "my_v1.mp3",
+          "you": "you_v1.mp3",
+          "it": "it_v1.mp3",
+          "they": "they_v1.mp3",
+          "this": "this_v1.mp3",
+          "one": "one_v1.mp3",
+          "name": "name_v1.mp3",
+          "ishmael": "ishmael_v1.mp3",
+          "ocean": "ocean_v1.mp3",
+          "story": "story_v1.mp3",
+          "adventures": "adventures_v1.mp3",
+          "journey": "journey_v1.mp3",
+          "feeling": "feeling_v1.mp3",
+          "people": "people_v1.mp3",
+          "walks": "walks_v1.mp3",
+          "way": "way_v1.mp3",
+          "sea": "sea_v1.mp3",
+          "a": "a_v1.mp3",
+          "bit": "bit_v1.mp3",
+          "the": "the_v1.mp3",
+          "world": "world_v1.mp3",
+          "wind": "wind_v1.mp3",
+          "face": "face_v1.mp3",
+          "things": "things_v1.mp3",
+          "town": "town_v1.mp3",
+          "ships": "ships_v1.mp3",
+          "sailors": "sailors_v1.mp3",
+          "stories": "stories_v1.mp3",
+          "places": "places_v1.mp3"
+        }
+      }
     }
-  }
+  ]
 }

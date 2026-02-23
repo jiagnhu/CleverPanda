@@ -32,6 +32,7 @@ type ChapterItem = {
 };
 
 type AudioConfig = {
+  cacheKey?: string;
   baseUrl?: string;
   manifest?: Record<string, string>;
 };
@@ -39,7 +40,8 @@ type AudioConfig = {
 type LegacyChapterData = {
   items: ChapterItem[];
   interactiveWords?: string[];
-  audio?: AudioConfig;
+  chapter?: RichChapterPayload | RichChapterPayload[];
+  chapters?: RichChapterPayload[];
 };
 
 type RichPageData = {
@@ -57,6 +59,7 @@ type RichChapterPayload = {
   titleEnglish?: string;
   titleMandarin?: string;
   pages?: RichPageData[];
+  audio?: AudioConfig;
 };
 
 type RichChapterData = {
@@ -64,13 +67,16 @@ type RichChapterData = {
   chapter?: RichChapterPayload | RichChapterPayload[];
   chapters?: RichChapterPayload[];
   pages?: RichPageData[];
-  audio?: AudioConfig;
 };
 
 type NormalizedChapterData = {
   items: ChapterItem[];
   interactiveWords: string[];
-  audio?: AudioConfig;
+  audio: {
+    cacheKey: string;
+    baseUrl: string;
+    manifest: Record<string, string>;
+  } | null;
 };
 
 const items = ref<ChapterItem[]>([]);
@@ -88,8 +94,9 @@ const loadError = ref('');
 const audioBaseOverride = import.meta.env.VITE_AUDIO_BASE_URL;
 const buildStamp = typeof __BUILD_TIME__ === 'string' ? __BUILD_TIME__ : '';
 const cacheBust = buildStamp ? `?v=${encodeURIComponent(buildStamp)}` : '';
-const audioConfig = ref<{ baseUrl: string; manifest: Record<string, string> }>({
-  baseUrl: '/audio/',
+const audioConfig = ref<{ cacheKey: string; baseUrl: string; manifest: Record<string, string> }>({
+  cacheKey: '',
+  baseUrl: '',
   manifest: {}
 });
 
@@ -125,7 +132,38 @@ const toLineArray = (value: unknown): string[] => {
   return [];
 };
 
+const normalizeChapterAudio = (audio: AudioConfig | null | undefined) => {
+  if (!audio) return null;
+  if (typeof audio.baseUrl !== 'string' || !audio.baseUrl.trim()) return null;
+
+  const sourceManifest = audio.manifest;
+  if (!sourceManifest || typeof sourceManifest !== 'object') return null;
+
+  const manifestEntries = Object.entries(sourceManifest).filter(
+    ([key, value]) => typeof key === 'string' && key.trim() && typeof value === 'string' && value.trim()
+  );
+
+  if (!manifestEntries.length) return null;
+
+  const cacheKey =
+    typeof audio.cacheKey === 'string' && audio.cacheKey.trim()
+      ? audio.cacheKey.trim()
+      : 'chapter-audio';
+
+  return {
+    cacheKey,
+    baseUrl: normalizeBaseUrl(audio.baseUrl.trim()),
+    manifest: Object.fromEntries(manifestEntries)
+  };
+};
+
 const normalizeChapterData = (raw: unknown): NormalizedChapterData => {
+  const chapterContainer = raw as Pick<RichChapterData, 'chapter' | 'chapters'>;
+  const chapterPayload = Array.isArray(chapterContainer.chapter)
+    ? chapterContainer.chapter[0]
+    : chapterContainer.chapter ??
+      (Array.isArray(chapterContainer.chapters) ? chapterContainer.chapters[0] : undefined);
+
   const asLegacy = raw as LegacyChapterData;
   if (Array.isArray(asLegacy.items)) {
     const items = asLegacy.items.map((item, index) => {
@@ -155,14 +193,11 @@ const normalizeChapterData = (raw: unknown): NormalizedChapterData => {
     return {
       items,
       interactiveWords: Array.from(interactiveWords),
-      audio: asLegacy.audio
+      audio: normalizeChapterAudio(chapterPayload?.audio)
     };
   }
 
   const asRich = raw as RichChapterData;
-  const chapterPayload = Array.isArray(asRich.chapter)
-    ? asRich.chapter[0]
-    : asRich.chapter ?? (Array.isArray(asRich.chapters) ? asRich.chapters[0] : undefined);
 
   const pages = Array.isArray(chapterPayload?.pages)
     ? chapterPayload.pages
@@ -193,7 +228,7 @@ const normalizeChapterData = (raw: unknown): NormalizedChapterData => {
   return {
     items,
     interactiveWords: Array.from(interactiveWords),
-    audio: asRich.audio
+    audio: normalizeChapterAudio(chapterPayload?.audio)
   };
 };
 
@@ -215,20 +250,36 @@ const loadChapter = async () => {
     currentIndex.value = 0;
     hasEmittedDemoComplete.value = false;
     interactiveSet.value = new Set(data.interactiveWords);
-    const baseUrl = normalizeBaseUrl(audioBaseOverride || data.audio?.baseUrl || '/audio/');
-    const manifest = data.audio?.manifest ?? {};
-    audioConfig.value = { baseUrl, manifest };
-    setAudioConfig({ baseUrl, manifest });
-    precacheStatus.value = 'idle';
-    precacheProgress.value = { done: 0, total: 0 };
-    setUseLocalAudio(true);
-    void requestPrecache();
+    if (data.audio) {
+      const baseUrl = normalizeBaseUrl(audioBaseOverride || data.audio.baseUrl);
+      const manifest = data.audio.manifest;
+      audioConfig.value = {
+        cacheKey: data.audio.cacheKey,
+        baseUrl,
+        manifest
+      };
+      setAudioConfig({ baseUrl, manifest });
+      setUseLocalAudio(true);
+      precacheStatus.value = 'idle';
+      precacheProgress.value = { done: 0, total: 0 };
+      void requestPrecache();
+    } else {
+      audioConfig.value = {
+        cacheKey: '',
+        baseUrl: '',
+        manifest: {}
+      };
+      setAudioConfig({ baseUrl: '', manifest: {} });
+      setUseLocalAudio(false);
+      precacheStatus.value = 'error';
+      precacheProgress.value = { done: 0, total: 0 };
+    }
     loaded = true;
   } catch (error) {
     loadError.value = 'Content load failed.';
-    const baseUrl = normalizeBaseUrl(audioBaseOverride || '/audio/');
-    audioConfig.value = { baseUrl, manifest: {} };
-    setAudioConfig({ baseUrl, manifest: {} });
+    audioConfig.value = { cacheKey: '', baseUrl: '', manifest: {} };
+    setAudioConfig({ baseUrl: '', manifest: {} });
+    setUseLocalAudio(false);
     precacheStatus.value = 'error';
   } finally {
     loading.value = false;
@@ -237,11 +288,11 @@ const loadChapter = async () => {
 };
 
 const buildAudioUrls = () => {
-  const manifestValues = Object.values(audioConfig.value.manifest);
-  const fileNames =
-    manifestValues.length > 0
-      ? manifestValues
-      : Array.from(interactiveSet.value).map((word) => `${word}.mp3`);
+  if (!audioConfig.value.baseUrl) return [];
+  const fileNames = Array.from(
+    new Set(Object.values(audioConfig.value.manifest).filter((fileName) => typeof fileName === 'string' && fileName))
+  );
+  if (!fileNames.length) return [];
 
   const base = new URL(audioConfig.value.baseUrl, window.location.origin);
   return fileNames.map((fileName) => new URL(fileName, base).toString());
@@ -271,7 +322,11 @@ const requestPrecache = async () => {
       precacheStatus.value = 'error';
       return;
     }
-    registration.active.postMessage({ type: 'precache-audio', urls });
+    registration.active.postMessage({
+      type: 'precache-audio',
+      urls,
+      cacheKey: audioConfig.value.cacheKey
+    });
   } catch {
     precacheStatus.value = 'error';
   }

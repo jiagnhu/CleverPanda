@@ -1,4 +1,9 @@
-const AUDIO_CACHE = 'audio-cache-v1.3';
+
+
+// @ts-nocheck
+
+const AUDIO_RUNTIME_CACHE = 'audio-cache-runtime-v1';
+const AUDIO_CACHE_PREFIX = 'audio-cache-chapter-';
 const FONT_CACHE = 'font-cache-v1.1';
 const SVG_CACHE = 'svg-cache-v1';
 const AUDIO_EXTENSIONS = ['.mp3'];
@@ -59,11 +64,10 @@ async function createRangedResponse(cachedResponse, rangeHeader) {
 }
 
 async function cacheAudioRequest(request) {
-  const cache = await caches.open(AUDIO_CACHE);
   const rangeHeader = request.headers.get('range');
+  const cachedResponse = await caches.match(request.url);
 
   if (rangeHeader) {
-    const cachedResponse = await cache.match(request.url);
     if (cachedResponse) {
       const ranged = await createRangedResponse(cachedResponse, rangeHeader);
       if (ranged) return ranged;
@@ -71,11 +75,11 @@ async function cacheAudioRequest(request) {
     return fetch(request);
   }
 
-  const cached = await cache.match(request);
-  if (cached) return cached;
+  if (cachedResponse) return cachedResponse;
 
   const response = await fetch(request);
   if (response.ok) {
+    const cache = await caches.open(AUDIO_RUNTIME_CACHE);
     cache.put(request, response.clone());
   }
   return response;
@@ -136,7 +140,7 @@ async function postMessageToClient(source, message) {
   }
 }
 
-async function precacheAudio(urls, source) {
+async function precacheAudio(urls, source, cacheKey) {
   if (isPrecaching) {
     await postMessageToClient(source, { type: 'precache-error', error: 'busy' });
     return;
@@ -149,7 +153,9 @@ async function precacheAudio(urls, source) {
 
   isPrecaching = true;
   let failed = 0;
-  const cache = await caches.open(AUDIO_CACHE);
+  const safeCacheKey =
+    typeof cacheKey === 'string' && cacheKey.trim() ? cacheKey.trim().replace(/[^a-zA-Z0-9._-]/g, '_') : 'default';
+  const cache = await caches.open(`${AUDIO_CACHE_PREFIX}${safeCacheKey}`);
 
   for (let i = 0; i < urls.length; i += 1) {
     const url = urls[i];
@@ -193,5 +199,6 @@ self.addEventListener('message', (event) => {
   const data = event.data;
   if (!data || data.type !== 'precache-audio') return;
   const urls = Array.isArray(data.urls) ? data.urls : [];
-  event.waitUntil(precacheAudio(urls, event.source));
+  const cacheKey = typeof data.cacheKey === 'string' ? data.cacheKey : '';
+  event.waitUntil(precacheAudio(urls, event.source, cacheKey));
 });
