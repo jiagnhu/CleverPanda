@@ -24,12 +24,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <ReadingPage
-    v-if="contentUrl"
-    :active="true"
-    :content-url="contentUrl"
-    :show-chapter-header-on-first-page="true"
-  />
+  <ReadingPage v-if="contentUrl" :active="true" :content-url="contentUrl" />
   <section v-else class="screen reading-fallback">
     <p class="reading-fallback__text">Content not found.</p>
   </section>

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import FullScreenBurst from '@/components/FullScreenBurst.vue';
 import { getBookEntry, DEMO_BOOK_ID } from '@/data/books';
 
 const route = useRoute();
@@ -20,24 +21,14 @@ const goToTitle = () => {
 
 <template>
   <section class="screen success-screen" aria-label="Success">
+    <FullScreenBurst />
     <div class="success-screen__content">
       <div class="success-screen__animation" aria-hidden="true">
-        <svg class="success-screen__confetti" viewBox="0 0 300 140">
-          <g class="confetti-group confetti-group--a">
-            <circle cx="46" cy="28" r="6" />
-            <rect x="86" y="18" width="10" height="10" rx="2" />
-            <rect x="120" y="34" width="12" height="12" rx="2" />
-          </g>
-          <g class="confetti-group confetti-group--b">
-            <circle cx="250" cy="24" r="6" />
-            <rect x="214" y="16" width="12" height="12" rx="2" />
-            <rect x="176" y="30" width="10" height="10" rx="2" />
-          </g>
-        </svg>
         <svg class="success-screen__panda" viewBox="0 0 220 180">
           <circle cx="70" cy="52" r="22" class="panda-ear" />
           <circle cx="150" cy="52" r="22" class="panda-ear" />
           <ellipse cx="110" cy="96" rx="66" ry="58" class="panda-face" />
+
           <ellipse cx="84" cy="92" rx="14" ry="18" class="panda-eye-patch" />
           <ellipse cx="136" cy="92" rx="14" ry="18" class="panda-eye-patch" />
           <circle cx="84" cy="94" r="5" class="panda-eye" />
@@ -67,6 +58,7 @@ const goToTitle = () => {
   background: var(--bg);
   color: var(--accent-strong);
   overflow: hidden;
+  position: relative;
 }
 
 .success-screen__content {
@@ -76,36 +68,22 @@ const goToTitle = () => {
   align-items: center;
   gap: 14px;
   text-align: center;
+  position: relative;
+  z-index: 3;
 }
 
 .success-screen__animation {
   width: min(82vw, 300px);
-  position: relative;
   margin-bottom: 8px;
-}
-
-.success-screen__confetti {
-  width: 100%;
-  display: block;
-}
-
-.confetti-group {
-  fill: #7fc92f;
-  transform-origin: center;
-}
-
-.confetti-group--a {
-  animation: confettiFloatA 1.8s ease-in-out infinite alternate;
-}
-
-.confetti-group--b {
-  animation: confettiFloatB 1.9s ease-in-out infinite alternate;
+  height: 170px;
 }
 
 .success-screen__panda {
   width: 72%;
-  margin: -10px auto 0;
+  margin: 10px auto 0;
   display: block;
+  position: relative;
+  z-index: 1;
   animation: pandaBob 2s ease-in-out infinite;
 }
 
@@ -185,24 +163,6 @@ const goToTitle = () => {
   font-size: 13px;
   opacity: 0.92;
   letter-spacing: 0.02em;
-}
-
-@keyframes confettiFloatA {
-  0% {
-    transform: translateY(0) rotate(-2deg);
-  }
-  100% {
-    transform: translateY(8px) rotate(6deg);
-  }
-}
-
-@keyframes confettiFloatB {
-  0% {
-    transform: translateY(3px) rotate(2deg);
-  }
-  100% {
-    transform: translateY(-6px) rotate(-5deg);
-  }
 }
 
 @keyframes pandaBob {

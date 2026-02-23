@@ -11,13 +11,11 @@ const props = withDefaults(
     active?: boolean;
     contentUrl?: string;
     demoEndPage?: number | null;
-    showChapterHeaderOnFirstPage?: boolean;
   }>(),
   {
     active: true,
     contentUrl: '/mock/chapter1.json',
-    demoEndPage: null,
-    showChapterHeaderOnFirstPage: false
+    demoEndPage: null
   }
 );
 
@@ -54,29 +52,25 @@ type RichPageData = {
   enLines?: string[];
 };
 
-type RichChapterData = {
-  schemaVersion?: string;
-  chapter?: {
-    number?: number;
-    titleEnglish?: string;
-    titleMandarin?: string;
-    pages?: RichPageData[];
-  };
+type RichChapterPayload = {
+  number?: number;
+  titleEnglish?: string;
+  titleMandarin?: string;
   pages?: RichPageData[];
-  audio?: AudioConfig;
 };
 
-type ChapterHeaderData = {
-  number: number | null;
-  titleEnglish: string;
-  titleMandarin: string;
+type RichChapterData = {
+  schemaVersion?: string;
+  chapter?: RichChapterPayload | RichChapterPayload[];
+  chapters?: RichChapterPayload[];
+  pages?: RichPageData[];
+  audio?: AudioConfig;
 };
 
 type NormalizedChapterData = {
   items: ChapterItem[];
   interactiveWords: string[];
   audio?: AudioConfig;
-  chapterHeader: ChapterHeaderData | null;
 };
 
 const items = ref<ChapterItem[]>([]);
@@ -90,7 +84,6 @@ const progress = computed(() => {
 const interactiveSet = shallowRef<Set<string>>(new Set());
 const loading = ref(true);
 const loadError = ref('');
-const chapterHeader = ref<ChapterHeaderData | null>(null);
 
 const audioBaseOverride = import.meta.env.VITE_AUDIO_BASE_URL;
 const buildStamp = typeof __BUILD_TIME__ === 'string' ? __BUILD_TIME__ : '';
@@ -119,12 +112,6 @@ let touchStartY = 0;
 let touchStartTime = 0;
 let touchHorizontalLock = false;
 const hasEmittedDemoComplete = ref(false);
-const showFirstPageHeader = computed(() => {
-  if (!props.showChapterHeaderOnFirstPage) return false;
-  if (currentIndex.value !== 0) return false;
-  if (!chapterHeader.value) return false;
-  return Boolean(chapterHeader.value.titleEnglish || chapterHeader.value.titleMandarin);
-});
 
 const toLineArray = (value: unknown): string[] => {
   if (Array.isArray(value)) {
@@ -168,14 +155,17 @@ const normalizeChapterData = (raw: unknown): NormalizedChapterData => {
     return {
       items,
       interactiveWords: Array.from(interactiveWords),
-      audio: asLegacy.audio,
-      chapterHeader: null
+      audio: asLegacy.audio
     };
   }
 
   const asRich = raw as RichChapterData;
-  const pages = Array.isArray(asRich.chapter?.pages)
-    ? asRich.chapter.pages
+  const chapterPayload = Array.isArray(asRich.chapter)
+    ? asRich.chapter[0]
+    : asRich.chapter ?? (Array.isArray(asRich.chapters) ? asRich.chapters[0] : undefined);
+
+  const pages = Array.isArray(chapterPayload?.pages)
+    ? chapterPayload.pages
     : Array.isArray(asRich.pages)
       ? asRich.pages
       : [];
@@ -200,25 +190,10 @@ const normalizeChapterData = (raw: unknown): NormalizedChapterData => {
     });
   });
 
-  const chapterNumber = typeof asRich.chapter?.number === 'number' ? asRich.chapter.number : null;
-  const chapterTitleEnglish =
-    typeof asRich.chapter?.titleEnglish === 'string' ? asRich.chapter.titleEnglish.trim() : '';
-  const chapterTitleMandarin =
-    typeof asRich.chapter?.titleMandarin === 'string' ? asRich.chapter.titleMandarin.trim() : '';
-  const parsedChapterHeader =
-    chapterTitleEnglish || chapterTitleMandarin
-      ? {
-          number: chapterNumber,
-          titleEnglish: chapterTitleEnglish,
-          titleMandarin: chapterTitleMandarin
-        }
-      : null;
-
   return {
     items,
     interactiveWords: Array.from(interactiveWords),
-    audio: asRich.audio,
-    chapterHeader: parsedChapterHeader
+    audio: asRich.audio
   };
 };
 
@@ -238,7 +213,6 @@ const loadChapter = async () => {
     const data = normalizeChapterData(rawData);
     items.value = data.items;
     currentIndex.value = 0;
-    chapterHeader.value = data.chapterHeader;
     hasEmittedDemoComplete.value = false;
     interactiveSet.value = new Set(data.interactiveWords);
     const baseUrl = normalizeBaseUrl(audioBaseOverride || data.audio?.baseUrl || '/audio/');
@@ -252,7 +226,6 @@ const loadChapter = async () => {
     loaded = true;
   } catch (error) {
     loadError.value = 'Content load failed.';
-    chapterHeader.value = null;
     const baseUrl = normalizeBaseUrl(audioBaseOverride || '/audio/');
     audioConfig.value = { baseUrl, manifest: {} };
     setAudioConfig({ baseUrl, manifest: {} });
@@ -492,16 +465,6 @@ watch(
       @touchcancel.stop="onTouchCancel"
     >
       <div class="reading__inner">
-        <div v-if="showFirstPageHeader && !loading && !loadError && currentItem" class="chapter-header">
-          <p v-if="chapterHeader?.titleEnglish" class="chapter-header__en">
-            <template v-if="chapterHeader?.number">Chapter {{ chapterHeader.number }} - </template>
-            {{ chapterHeader?.titleEnglish }}
-          </p>
-          <p v-if="chapterHeader?.titleMandarin" class="chapter-header__zh">
-            <template v-if="chapterHeader?.number">第{{ chapterHeader.number }}章 </template>
-            {{ chapterHeader?.titleMandarin }}
-          </p>
-        </div>
         <p v-if="loading" class="status">Loading...</p>
         <p v-else-if="loadError" class="status">{{ loadError }}</p>
         <p v-else-if="!currentItem" class="status">No content.</p>
@@ -541,27 +504,6 @@ watch(
 
 .reading__inner {
   width: min(90vw, 360px);
-}
-
-.chapter-header {
-  margin: 0 auto 18px;
-  color: var(--accent-strong);
-}
-
-.chapter-header__en {
-  margin: 0;
-  font-size: 19px;
-  line-height: 1.35;
-  font-weight: 700;
-  font-family: "Gotham Rounded", "FZCuYuan";
-}
-
-.chapter-header__zh {
-  margin: 6px 0 0;
-  font-size: 16px;
-  line-height: 1.35;
-  color: var(--accent);
-  font-family: "FZCuYuan", "Gotham Rounded";
 }
 
 .status {

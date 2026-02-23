@@ -22,6 +22,8 @@ type ReadingTracker = {
 const CLICK_FLUSH_THRESHOLD = 3;
 const FLUSH_INTERVAL_MS = 2000;
 const ANONYMOUS_USER_KEY = 'cp_anonymous_user_id';
+const READING_SESSION_KEY = 'cp_reading_session_id';
+let sharedReadingSessionId: string | null = null;
 
 const createId = (prefix: string) => {
   if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
@@ -42,6 +44,40 @@ const getAnonymousUserId = () => {
   }
 };
 
+const getReadingSessionId = () => {
+  if (sharedReadingSessionId) return sharedReadingSessionId;
+
+  const isHomePath = (() => {
+    if (typeof window === 'undefined') return false;
+    const path = window.location.pathname || '/';
+    return path === '/';
+  })();
+
+  const createAndStore = () => {
+    const next = createId('s');
+    try {
+      sessionStorage.setItem(READING_SESSION_KEY, next);
+    } catch {}
+    return next;
+  };
+
+  if (isHomePath) {
+    sharedReadingSessionId = createAndStore();
+    return sharedReadingSessionId;
+  }
+
+  try {
+    const existing = sessionStorage.getItem(READING_SESSION_KEY);
+    if (existing) {
+      sharedReadingSessionId = existing;
+      return sharedReadingSessionId;
+    }
+  } catch {}
+
+  sharedReadingSessionId = createAndStore();
+  return sharedReadingSessionId;
+};
+
 const clampDelta = (value: number) => (Number.isFinite(value) && value > 0 ? Math.floor(value) : 0);
 
 const isSameOriginUrl = (targetUrl: string) => {
@@ -57,7 +93,7 @@ const isSameOriginUrl = (targetUrl: string) => {
 export const createReadingTracker = (path = '/api/tracking.php'): ReadingTracker => {
   const endpoint = buildApiUrl(path);
   const canUseBeacon = isSameOriginUrl(endpoint);
-  const sessionId = createId('s');
+  const sessionId = getReadingSessionId();
   const anonymousUserId = getAnonymousUserId();
 
   let pendingClicks = 0;
