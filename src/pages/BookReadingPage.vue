@@ -16,6 +16,17 @@ const contentUrl = computed(() => {
   return bookEntry.value.chapterUrl;
 });
 
+const goTitlePage = () => {
+  if (!bookEntry.value) {
+    void router.replace({ path: '/' });
+    return;
+  }
+  void router.push({
+    name: 'book-title',
+    params: { bookId: bookEntry.value.bookId }
+  });
+};
+
 onMounted(() => {
   if (!bookEntry.value || !contentUrl.value) {
     void router.replace({ path: '/' });
@@ -24,7 +35,12 @@ onMounted(() => {
 </script>
 
 <template>
-  <ReadingPage v-if="contentUrl" :active="true" :content-url="contentUrl" />
+  <ReadingPage
+    v-if="contentUrl"
+    :active="true"
+    :content-url="contentUrl"
+    @edge-prev="goTitlePage"
+  />
   <section v-else class="screen reading-fallback">
     <p class="reading-fallback__text">Content not found.</p>
   </section>
