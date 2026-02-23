@@ -1,0 +1,118 @@
+{
+  "schemaVersion": "cp-book-v1",
+  "bookId": "alice-001",
+  "titleEnglish": "Alice's Adventures in Wonderland",
+  "titleMandarin": "爱丽丝梦游仙境",
+  "chapter": {
+    "number": 1,
+    "titleEnglish": "Down the Rabbit Hole",
+    "titleMandarin": "掉进兔子洞",
+    "totalPages": 20,
+    "pages": [
+      {
+        "page": 1,
+        "zh": "爱丽丝和她的姐姐坐在河边。",
+        "enRich": "{g|Alice} {g|sat} by the {b|river} with {b|her} {b|sister}."
+      },
+      {
+        "page": 2,
+        "zh": "她觉得很累很无聊。",
+        "enRich": "{g|She} {g|felt} very tired and bored."
+      },
+      {
+        "page": 3,
+        "zh": "爱丽丝看了看姐姐的书。",
+        "enRich": "{g|Alice} {g|looked} at {b|her} {b|sister}'s {b|book}."
+      },
+      {
+        "page": 4,
+        "zh": "那本书没有图片。",
+        "enRich": "The {b|book} {g|had} no {b|pictures}."
+      },
+      {
+        "page": 5,
+        "zh": "突然，一只白兔跑了过去。",
+        "enRich": "Suddenly a white {g|rabbit} {g|ran} by."
+      },
+      {
+        "page": 6,
+        "zh": "兔子有大大的粉红色眼睛。",
+        "enRich": "The {g|rabbit} {g|had} big pink {b|eyes}."
+      },
+      {
+        "page": 7,
+        "zh": "兔子从马甲里拿出了一个手表。",
+        "enRich": "The {g|rabbit} {g|took} a {b|watch} out of its {b|waistcoat}."
+      },
+      {
+        "page": 8,
+        "zh": "爱丽丝一下子跳了起来。",
+        "enRich": "{g|Alice} {g|jumped} to {b|her} {b|feet}."
+      },
+      {
+        "page": 9,
+        "zh": "她追着兔子跑。",
+        "enRich": "{g|She} {g|ran} after the {b|rabbit}."
+      },
+      {
+        "page": 10,
+        "zh": "兔子钻进了一个大洞。",
+        "enRich": "The {g|rabbit} {g|popped} down a big {b|hole}."
+      },
+      {
+        "page": 11,
+        "zh": "爱丽丝跟着钻进了洞里。",
+        "enRich": "{g|Alice} {g|went} down the {b|hole} after it."
+      },
+      {
+        "page": 12,
+        "zh": "她不停地往下掉，掉进了一个很深的井里。",
+        "enRich": "{g|She} {g|fell} down and down a deep {b|well}."
+      },
+      {
+        "page": 13,
+        "zh": "井壁上有橱柜和书架。",
+        "enRich": "The {b|walls} {g|had} {b|cupboards} and {b|bookshelves}."
+      },
+      {
+        "page": 14,
+        "zh": "爱丽丝看到一个橘子酱的罐子。",
+        "enRich": "{g|Alice} {g|saw} a {b|jar} of {b|marmalade}."
+      },
+      {
+        "page": 15,
+        "zh": "她掉了好长时间。",
+        "enRich": "{g|She} {g|fell} for a very long {b|time}."
+      },
+      {
+        "page": 16,
+        "zh": "爱丽丝轻轻落在一堆树叶上。",
+        "enRich": "{g|Alice} {g|landed} softly on a pile of {b|leaves}."
+      },
+      {
+        "page": 17,
+        "zh": "兔子还在一条长长的通道里匆匆忙忙地跑。",
+        "enRich": "The {g|rabbit} {g|was} still hurrying down a long {b|passage}."
+      },
+      {
+        "page": 18,
+        "zh": "爱丽丝发现自己在一个有很多门的大厅里。",
+        "enRich": "{g|Alice} {g|found} {b|herself} in a big {b|hall} with many {b|doors}."
+      },
+      {
+        "page": 19,
+        "zh": "桌子上有一个小金钥匙。",
+        "enRich": "On a {b|table} {g|was} a small golden {b|key}."
+      },
+      {
+        "page": 20,
+        "zh": "爱丽丝看到一扇小门通往一个美丽的花园。",
+        "enRich": "{g|Alice} {g|saw} a tiny {b|door} that {g|led} to a beautiful {b|garden}."
+      }
+    ]
+  },
+  "audio": {
+    "baseUrl": "/audio/",
+    "manifest": {}
+  }
+}

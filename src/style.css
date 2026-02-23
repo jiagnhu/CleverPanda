@@ -81,6 +81,8 @@
   --accent-strong: #4da51a;
   --accent-rgb: 77, 165, 26;
   --accent-soft: rgba(77, 165, 26, 0.2);
+  --accent-blue: #2f7dff;
+  --accent-blue-rgb: 47, 125, 255;
 }
 
 * {

@@ -4,6 +4,7 @@ import BilingualLine from '@/components/BilingualLine.vue';
 import ProgressBar from '@/components/ProgressBar.vue';
 import { setAudioConfig, setUseLocalAudio } from '@/audio/player';
 import { createReadingTracker } from '@/tracking/readingTracker';
+import { collectEnRichWords } from '@/utils/enRich';
 
 const props = withDefaults(
   defineProps<{
@@ -25,13 +26,40 @@ type ChapterItem = {
   enLines: string[];
 };
 
-type ChapterData = {
+type AudioConfig = {
+  baseUrl?: string;
+  manifest?: Record<string, string>;
+};
+
+type LegacyChapterData = {
+  items: ChapterItem[];
+  interactiveWords?: string[];
+  audio?: AudioConfig;
+};
+
+type RichPageData = {
+  page?: number;
+  zh?: string | string[];
+  mandarin?: string | string[];
+  enRich?: string | string[];
+  enRichLines?: string[];
+  en?: string | string[];
+  enLines?: string[];
+};
+
+type RichChapterData = {
+  schemaVersion?: string;
+  chapter?: {
+    pages?: RichPageData[];
+  };
+  pages?: RichPageData[];
+  audio?: AudioConfig;
+};
+
+type NormalizedChapterData = {
   items: ChapterItem[];
   interactiveWords: string[];
-  audio?: {
-    baseUrl?: string;
-    manifest?: Record<string, string>;
-  };
+  audio?: AudioConfig;
 };
 
 const items = ref<ChapterItem[]>([]);
@@ -72,6 +100,86 @@ let touchStartX = 0;
 let touchStartY = 0;
 let touchStartTime = 0;
 
+const toLineArray = (value: unknown): string[] => {
+  if (Array.isArray(value)) {
+    return value
+      .map((line) => (typeof line === 'string' ? line : ''))
+      .filter((line) => line.length > 0);
+  }
+  if (typeof value === 'string') {
+    return [value];
+  }
+  return [];
+};
+
+const normalizeChapterData = (raw: unknown): NormalizedChapterData => {
+  const asLegacy = raw as LegacyChapterData;
+  if (Array.isArray(asLegacy.items)) {
+    const items = asLegacy.items.map((item, index) => {
+      const legacyItem = item as {
+        id?: string;
+        zhLines?: string[] | string;
+        enLines?: string[] | string;
+        enRichLines?: string[] | string;
+      };
+      return {
+        id: legacyItem.id || `s${index + 1}`,
+        zhLines: toLineArray(legacyItem.zhLines),
+        enLines: toLineArray(legacyItem.enRichLines ?? legacyItem.enLines)
+      };
+    });
+    const sourceWords = Array.isArray(asLegacy.interactiveWords) ? asLegacy.interactiveWords : [];
+    const interactiveWords = new Set(sourceWords);
+    if (interactiveWords.size === 0) {
+      items.forEach((item) => {
+        item.enLines.forEach((line) => {
+          collectEnRichWords(line).forEach((word) => {
+            interactiveWords.add(word);
+          });
+        });
+      });
+    }
+    return {
+      items,
+      interactiveWords: Array.from(interactiveWords),
+      audio: asLegacy.audio
+    };
+  }
+
+  const asRich = raw as RichChapterData;
+  const pages = Array.isArray(asRich.chapter?.pages)
+    ? asRich.chapter.pages
+    : Array.isArray(asRich.pages)
+      ? asRich.pages
+      : [];
+
+  const items = pages.map((page, index) => {
+    const zhLines = toLineArray(page.zh ?? page.mandarin);
+    const enLines = toLineArray(page.enRich ?? page.enRichLines ?? page.en ?? page.enLines);
+    const pageIndex = typeof page.page === 'number' ? page.page : index + 1;
+    return {
+      id: `p${pageIndex}`,
+      zhLines,
+      enLines
+    };
+  });
+
+  const interactiveWords = new Set<string>();
+  items.forEach((item) => {
+    item.enLines.forEach((line) => {
+      collectEnRichWords(line).forEach((word) => {
+        interactiveWords.add(word);
+      });
+    });
+  });
+
+  return {
+    items,
+    interactiveWords: Array.from(interactiveWords),
+    audio: asRich.audio
+  };
+};
+
 const loadChapter = async () => {
   loading.value = true;
   loadError.value = '';
@@ -81,12 +189,11 @@ const loadChapter = async () => {
     if (!response.ok) {
       throw new Error(`Request failed: ${response.status}`);
     }
-    const data = (await response.json()) as ChapterData;
-    items.value = Array.isArray(data.items) ? data.items : [];
+    const rawData = await response.json();
+    const data = normalizeChapterData(rawData);
+    items.value = data.items;
     currentIndex.value = 0;
-    if (Array.isArray(data.interactiveWords)) {
-      interactiveSet.value = new Set(data.interactiveWords);
-    }
+    interactiveSet.value = new Set(data.interactiveWords);
     const baseUrl = normalizeBaseUrl(audioBaseOverride || data.audio?.baseUrl || '/audio/');
     const manifest = data.audio?.manifest ?? {};
     audioConfig.value = { baseUrl, manifest };
