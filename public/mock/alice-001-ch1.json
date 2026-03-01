@@ -13,102 +13,102 @@
         {
           "page": 1,
           "zh": "爱丽丝和她的姐姐坐在河边。",
-          "enRich": "{g|Alice} {g|sat} by the {b|river} with {b|her} {b|sister}."
+          "enRich": "{g|Alice} {b|sat} by {g|the} {g|river} with {g|her} {g|sister}."
         },
         {
           "page": 2,
           "zh": "她觉得很累很无聊。",
-          "enRich": "{g|She} {g|felt} very tired and bored."
+          "enRich": "{g|She} {b|felt} very tired and bored."
         },
         {
           "page": 3,
           "zh": "爱丽丝看了看姐姐的书。",
-          "enRich": "{g|Alice} {g|looked} at {b|her} {b|sister}'s {b|book}."
+          "enRich": "{g|Alice} {b|looked} at {g|her} {g|sister}'s {g|book}."
         },
         {
           "page": 4,
           "zh": "那本书没有图片。",
-          "enRich": "The {b|book} {g|had} no {b|pictures}."
+          "enRich": "{g|The} {g|book} {b|had} no {g|pictures}."
         },
         {
           "page": 5,
           "zh": "突然，一只白兔跑了过去。",
-          "enRich": "Suddenly a white {g|rabbit} {g|ran} by."
+          "enRich": "Suddenly {g|a} white {g|rabbit} {b|ran} by."
         },
         {
           "page": 6,
           "zh": "兔子有大大的粉红色眼睛。",
-          "enRich": "The {g|rabbit} {g|had} big pink {b|eyes}."
+          "enRich": "{g|The} {g|rabbit} {b|had} big pink {g|eyes}."
         },
         {
           "page": 7,
           "zh": "兔子从马甲里拿出了一个手表。",
-          "enRich": "The {g|rabbit} {g|took} a {b|watch} out of its {b|waistcoat}."
+          "enRich": "{g|The} {g|rabbit} {b|took} {g|a} {g|watch} out of {g|its} {g|waistcoat}."
         },
         {
           "page": 8,
           "zh": "爱丽丝一下子跳了起来。",
-          "enRich": "{g|Alice} {g|jumped} to {b|her} {b|feet}."
+          "enRich": "{g|Alice} {b|jumped} to {g|her} {g|feet}."
         },
         {
           "page": 9,
           "zh": "她追着兔子跑。",
-          "enRich": "{g|She} {g|ran} after the {b|rabbit}."
+          "enRich": "{g|She} {b|ran} after {g|the} {g|rabbit}."
         },
         {
           "page": 10,
           "zh": "兔子钻进了一个大洞。",
-          "enRich": "The {g|rabbit} {g|popped} down a big {b|hole}."
+          "enRich": "{g|The} {g|rabbit} {b|popped} down {g|a} big {g|hole}."
         },
         {
           "page": 11,
           "zh": "爱丽丝跟着钻进了洞里。",
-          "enRich": "{g|Alice} {g|went} down the {b|hole} after it."
+          "enRich": "{g|Alice} {b|went} down {g|the} {g|hole} after {g|it}."
         },
         {
           "page": 12,
           "zh": "她不停地往下掉，掉进了一个很深的井里。",
-          "enRich": "{g|She} {g|fell} down and down a deep {b|well}."
+          "enRich": "{g|She} {b|fell} down and down {g|a} deep {g|well}."
         },
         {
           "page": 13,
           "zh": "井壁上有橱柜和书架。",
-          "enRich": "The {b|walls} {g|had} {b|cupboards} and {b|bookshelves}."
+          "enRich": "{g|The} {g|walls} {b|had} {g|cupboards} and {g|bookshelves}."
         },
         {
           "page": 14,
           "zh": "爱丽丝看到一个橘子酱的罐子。",
-          "enRich": "{g|Alice} {g|saw} a {b|jar} of {b|marmalade}."
+          "enRich": "{g|Alice} {b|saw} {g|a} {g|jar} of {g|marmalade}."
         },
         {
           "page": 15,
           "zh": "她掉了好长时间。",
-          "enRich": "{g|She} {g|fell} for a very long {b|time}."
+          "enRich": "{g|She} {b|fell} for {g|a} very long {g|time}."
         },
         {
           "page": 16,
           "zh": "爱丽丝轻轻落在一堆树叶上。",
-          "enRich": "{g|Alice} {g|landed} softly on a pile of {b|leaves}."
+          "enRich": "{g|Alice} {b|landed} softly on {g|a} {g|pile} of {g|leaves}."
         },
         {
           "page": 17,
           "zh": "兔子还在一条长长的通道里匆匆忙忙地跑。",
-          "enRich": "The {g|rabbit} {g|was} still hurrying down a long {b|passage}."
+          "enRich": "{g|The} {g|rabbit} {b|was} still {b|hurrying} down {g|a} long {g|passage}."
         },
         {
           "page": 18,
           "zh": "爱丽丝发现自己在一个有很多门的大厅里。",
-          "enRich": "{g|Alice} {g|found} {b|herself} in a big {b|hall} with many {b|doors}."
+          "enRich": "{g|Alice} {b|found} {g|herself} in {g|a} big {g|hall} with {g|many} {g|doors}."
         },
         {
           "page": 19,
           "zh": "桌子上有一个小金钥匙。",
-          "enRich": "On a {b|table} {g|was} a small golden {b|key}."
+          "enRich": "On {g|a} {g|table} {b|was} {g|a} small golden {g|key}."
         },
         {
           "page": 20,
           "zh": "爱丽丝看到一扇小门通往一个美丽的花园。",
-          "enRich": "{g|Alice} {g|saw} a tiny {b|door} that {g|led} to a beautiful {b|garden}."
+          "enRich": "{g|Alice} {b|saw} {g|a} tiny {g|door} that {b|led} to {g|a} beautiful {g|garden}."
         }
       ],
       "audio": {
@@ -117,6 +117,7 @@
         "manifest": {
           "alice": "alice.v1.mp3",
           "sat": "sat.v1.mp3",
+          "the": "the.v1.mp3",
           "river": "river.v1.mp3",
           "her": "her.v1.mp3",
           "sister": "sister.v1.mp3",
@@ -126,17 +127,20 @@
           "book": "book.v1.mp3",
           "had": "had.v1.mp3",
           "pictures": "pictures.v1.mp3",
+          "a": "a.v1.mp3",
           "rabbit": "rabbit.v1.mp3",
           "ran": "ran.v1.mp3",
           "eyes": "eyes.v1.mp3",
           "took": "took.v1.mp3",
           "watch": "watch.v1.mp3",
+          "its": "its.v1.mp3",
           "waistcoat": "waistcoat.v1.mp3",
           "jumped": "jumped.v1.mp3",
           "feet": "feet.v1.mp3",
           "popped": "popped.v1.mp3",
           "hole": "hole.v1.mp3",
           "went": "went.v1.mp3",
+          "it": "it.v1.mp3",
           "fell": "fell.v1.mp3",
           "well": "well.v1.mp3",
           "walls": "walls.v1.mp3",
@@ -147,12 +151,15 @@
           "marmalade": "marmalade.v1.mp3",
           "time": "time.v1.mp3",
           "landed": "landed.v1.mp3",
+          "pile": "pile.v1.mp3",
           "leaves": "leaves.v1.mp3",
           "was": "was.v1.mp3",
+          "hurrying": "hurrying.v1.mp3",
           "passage": "passage.v1.mp3",
           "found": "found.v1.mp3",
           "herself": "herself.v1.mp3",
           "hall": "hall.v1.mp3",
+          "many": "many.v1.mp3",
           "doors": "doors.v1.mp3",
           "table": "table.v1.mp3",
           "key": "key.v1.mp3",

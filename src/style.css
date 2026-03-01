@@ -83,6 +83,11 @@
   --accent-soft: rgba(77, 165, 26, 0.2);
   --accent-blue: #2f7dff;
   --accent-blue-rgb: 47, 125, 255;
+  --things-color: #4caf50;
+  --things-rgb: 76, 175, 80;
+  --actions-color: #2196f3;
+  --actions-rgb: 33, 150, 243;
+  --plain-text-color: #1f1f1f;
 }
 
 * {

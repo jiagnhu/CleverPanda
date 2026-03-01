@@ -98,15 +98,19 @@ onBeforeUnmount(() => {
         @keydown.enter.prevent="onActivate(item.canonical, index)"
         @keydown.space.prevent="onActivate(item.canonical, index)"
         >{{ item.token }}</span
-      ><span v-else>{{ item.token }}</span>
+      ><span v-else class="word-plain">{{ item.token }}</span>
     </template>
   </span>
 </template>
 
 <style scoped lang="less">
+.word-tap-text {
+  color: var(--plain-text-color);
+}
+
 .word {
-  font-weight: 700;
-  text-transform: uppercase;
+  font-weight: inherit;
+  text-transform: none;
   display: inline-block;
   padding: 2px 4px;
   margin: 0 1px;
@@ -118,12 +122,16 @@ onBeforeUnmount(() => {
   transition: transform 120ms ease, background-color 120ms ease, box-shadow 120ms ease;
 }
 
+.word-plain {
+  color: var(--plain-text-color);
+}
+
 .word--green {
-  color: var(--accent-strong);
+  color: var(--things-color);
 }
 
 .word--blue {
-  color: var(--accent-blue);
+  color: var(--actions-color);
 }
 
 .word:active {
@@ -131,11 +139,11 @@ onBeforeUnmount(() => {
 }
 
 .word--green:active {
-  background: rgba(var(--accent-rgb), 0.16);
+  background: rgba(var(--things-rgb), 0.16);
 }
 
 .word--blue:active {
-  background: rgba(var(--accent-blue-rgb), 0.16);
+  background: rgba(var(--actions-rgb), 0.16);
 }
 
 .word:focus-visible {
@@ -159,31 +167,31 @@ onBeforeUnmount(() => {
 
 @keyframes flashGlowGreen {
   0% {
-    background: rgba(var(--accent-rgb), 0.35);
-    box-shadow: 0 0 0 0 rgba(var(--accent-rgb), 0.4);
+    background: rgba(var(--things-rgb), 0.35);
+    box-shadow: 0 0 0 0 rgba(var(--things-rgb), 0.4);
   }
   70% {
-    background: rgba(var(--accent-rgb), 0.2);
-    box-shadow: 0 0 0 6px rgba(var(--accent-rgb), 0.25);
+    background: rgba(var(--things-rgb), 0.2);
+    box-shadow: 0 0 0 6px rgba(var(--things-rgb), 0.25);
   }
   100% {
-    background: rgba(var(--accent-rgb), 0);
-    box-shadow: 0 0 0 0 rgba(var(--accent-rgb), 0);
+    background: rgba(var(--things-rgb), 0);
+    box-shadow: 0 0 0 0 rgba(var(--things-rgb), 0);
   }
 }
 
 @keyframes flashGlowBlue {
   0% {
-    background: rgba(var(--accent-blue-rgb), 0.35);
-    box-shadow: 0 0 0 0 rgba(var(--accent-blue-rgb), 0.4);
+    background: rgba(var(--actions-rgb), 0.35);
+    box-shadow: 0 0 0 0 rgba(var(--actions-rgb), 0.4);
   }
   70% {
-    background: rgba(var(--accent-blue-rgb), 0.2);
-    box-shadow: 0 0 0 6px rgba(var(--accent-blue-rgb), 0.25);
+    background: rgba(var(--actions-rgb), 0.2);
+    box-shadow: 0 0 0 6px rgba(var(--actions-rgb), 0.25);
   }
   100% {
-    background: rgba(var(--accent-blue-rgb), 0);
-    box-shadow: 0 0 0 0 rgba(var(--accent-blue-rgb), 0);
+    background: rgba(var(--actions-rgb), 0);
+    box-shadow: 0 0 0 0 rgba(var(--actions-rgb), 0);
   }
 }
 </style>

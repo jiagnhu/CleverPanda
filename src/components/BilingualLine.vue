@@ -59,6 +59,7 @@ const onInteractiveClick = (canonical: string) => {
 .bilingual__en {
   font-size: 18px;
   font-weight: 500;
+  color: var(--plain-text-color);
   letter-spacing: 0.04em;
   font-family: "Gotham Rounded", "FZCuYuan";
   display: flex;
