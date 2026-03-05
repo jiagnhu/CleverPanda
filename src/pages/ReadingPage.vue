@@ -14,7 +14,7 @@ const props = withDefaults(
   }>(),
   {
     active: true,
-    contentUrl: '/mock/chapter1.json',
+    contentUrl: '',
     demoEndPage: null
   }
 );

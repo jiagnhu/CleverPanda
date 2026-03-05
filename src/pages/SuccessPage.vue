@@ -1,22 +1,48 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import FullScreenBurst from '@/components/FullScreenBurst.vue';
-import { getBookEntry, DEMO_BOOK_ID } from '@/data/books';
+import { fetchBookContent, getBookEntry } from '@/data/books';
 
 const route = useRoute();
 const router = useRouter();
 
-const bookId = computed(() => String(route.params.bookId || DEMO_BOOK_ID));
-const bookEntry = computed(() => getBookEntry(bookId.value));
+const bookId = computed(() => String(route.params.bookId || ''));
+const ctaLabel = ref('Start reading');
+const ctaSubtitle = ref('');
 
 const goToTitle = () => {
-  if (!bookEntry.value) {
+  if (!bookId.value) {
     void router.replace({ path: '/' });
     return;
   }
-  void router.push({ name: 'book-title', params: { bookId: bookEntry.value.bookId } });
+  void router.push({ name: 'book-title', params: { bookId: bookId.value } });
 };
+
+onMounted(async () => {
+  if (!bookId.value) {
+    void router.replace({ path: '/' });
+    return;
+  }
+
+  const bookEntry = await getBookEntry(bookId.value);
+  const firstChapter = bookEntry?.chapters.find((chapter) => chapter.available !== false) ?? bookEntry?.chapters[0];
+  if (!firstChapter) {
+    void router.replace({ path: '/' });
+    return;
+  }
+
+  const payload = await fetchBookContent(firstChapter.contentUrl);
+  const titleEnglish = payload?.titleEnglish?.trim() || '';
+  const titleMandarin = payload?.titleMandarin?.trim() || '';
+
+  if (titleEnglish) {
+    ctaLabel.value = `Start ${titleEnglish}`;
+  }
+  if (titleMandarin) {
+    ctaSubtitle.value = `开始${titleMandarin}`;
+  }
+});
 </script>
 
 <template>
@@ -42,12 +68,8 @@ const goToTitle = () => {
       <h1 class="success-screen__title">Great reading together!</h1>
       <p class="success-screen__subtitle">Ready for a real adventure?</p>
       <button class="success-screen__cta" type="button" @click="goToTitle">
-        <span class="success-screen__cta-main">{{
-          bookEntry?.ctaLabel || "Start Alice's Adventures in Wonderland"
-        }}</span>
-        <span v-if="bookEntry?.ctaSubtitle" class="success-screen__cta-sub">
-          {{ bookEntry.ctaSubtitle }}
-        </span>
+        <span class="success-screen__cta-main">{{ ctaLabel }}</span>
+        <span v-if="ctaSubtitle" class="success-screen__cta-sub">{{ ctaSubtitle }}</span>
       </button>
     </div>
   </section>

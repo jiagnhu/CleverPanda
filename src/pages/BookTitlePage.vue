@@ -1,101 +1,95 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { getBookEntry, DEMO_BOOK_ID } from '@/data/books';
+import {
+  collectContentChapters,
+  fetchBookContent,
+  getBookEntry,
+  type BookCatalogChapterRef,
+  type BookContentChapter
+} from '@/data/books';
 
 type ChapterItem = {
   number: number;
   titleEnglish: string;
   titleMandarin: string;
   totalPages: number | null;
-};
-
-type ChapterPayloadItem = {
-  number?: number;
-  titleEnglish?: string;
-  titleMandarin?: string;
-  totalPages?: number;
-};
-
-type BookMetaPayload = {
-  titleEnglish?: string;
-  titleMandarin?: string;
-  chapter?: ChapterPayloadItem | ChapterPayloadItem[];
-  chapters?: ChapterPayloadItem[];
+  available: boolean;
 };
 
 const route = useRoute();
 const router = useRouter();
 
-const bookId = computed(() => String(route.params.bookId || DEMO_BOOK_ID));
-const bookEntry = computed(() => getBookEntry(bookId.value));
+const bookId = computed(() => String(route.params.bookId || ''));
 const titleEnglish = ref('');
 const titleMandarin = ref('');
 const loading = ref(false);
 const chapters = ref<ChapterItem[]>([]);
 
 const normalizeChapterItem = (
-  input: ChapterPayloadItem,
-  fallbackNumber: number
+  chapterRef: BookCatalogChapterRef,
+  chapterMeta: BookContentChapter | undefined
 ): ChapterItem => ({
-  number: typeof input.number === 'number' ? input.number : fallbackNumber,
-  titleEnglish: input.titleEnglish?.trim() || `Chapter ${fallbackNumber}`,
-  titleMandarin: input.titleMandarin?.trim() || '',
-  totalPages: typeof input.totalPages === 'number' ? input.totalPages : null
+  number:
+    typeof chapterMeta?.number === 'number'
+      ? chapterMeta.number
+      : chapterRef.number,
+  titleEnglish: chapterMeta?.titleEnglish?.trim() || `Chapter ${chapterRef.number}`,
+  titleMandarin: chapterMeta?.titleMandarin?.trim() || '',
+  totalPages:
+    typeof chapterMeta?.totalPages === 'number'
+      ? chapterMeta.totalPages
+      : Array.isArray(chapterMeta?.pages)
+        ? chapterMeta.pages.length
+        : null,
+  available: chapterRef.available !== false
 });
 
-const collectChapterPayload = (payload: BookMetaPayload): ChapterPayloadItem[] => {
-  if (Array.isArray(payload.chapter) && payload.chapter.length > 0) {
-    return payload.chapter;
-  }
-  if (payload.chapter && !Array.isArray(payload.chapter)) {
-    return [payload.chapter];
-  }
-  if (Array.isArray(payload.chapters) && payload.chapters.length > 0) {
-    return payload.chapters;
-  }
-  return [];
-};
-
-const availableChapterNumber = computed(() => bookEntry.value?.chapterNumber || 1);
-
-const isChapterAvailable = (chapterNo: number) => chapterNo === availableChapterNumber.value;
-
 const goReading = (chapterNo: number) => {
-  if (!bookEntry.value) {
+  const chapter = chapters.value.find((item) => item.number === chapterNo);
+  if (!bookId.value) {
     void router.replace({ path: '/' });
     return;
   }
-  if (!isChapterAvailable(chapterNo)) return;
+  if (!chapter?.available) return;
   void router.push({
     name: 'book-reading',
     params: {
-      bookId: bookEntry.value.bookId,
+      bookId: bookId.value,
       chapterNo: String(chapterNo)
     }
   });
 };
 
 onMounted(async () => {
-  if (!bookEntry.value) {
+  if (!bookId.value) {
     void router.replace({ path: '/' });
     return;
   }
 
   loading.value = true;
   try {
-    const response = await fetch(bookEntry.value.chapterUrl, { cache: 'no-store' });
-    if (!response.ok) return;
-    const payload = (await response.json()) as BookMetaPayload;
-    if (payload.titleEnglish) titleEnglish.value = payload.titleEnglish;
-    if (payload.titleMandarin) titleMandarin.value = payload.titleMandarin;
-
-    const chapterPayload = collectChapterPayload(payload);
-    const chapterItems = chapterPayload.map((chapter, index) => normalizeChapterItem(chapter, index + 1));
-
-    if (chapterItems.length > 0) {
-      chapters.value = chapterItems;
+    const bookEntry = await getBookEntry(bookId.value);
+    if (!bookEntry || !bookEntry.chapters.length) {
+      void router.replace({ path: '/' });
+      return;
     }
+
+    const payloads = await Promise.all(
+      bookEntry.chapters.map(async (chapter) => ({
+        chapter,
+        payload: await fetchBookContent(chapter.contentUrl)
+      }))
+    );
+
+    const firstPayload = payloads.find((item) => item.payload)?.payload ?? null;
+    if (firstPayload?.titleEnglish) titleEnglish.value = firstPayload.titleEnglish;
+    if (firstPayload?.titleMandarin) titleMandarin.value = firstPayload.titleMandarin;
+
+    chapters.value = payloads.map(({ chapter, payload }) => {
+      const chapterMeta = payload ? collectContentChapters(payload)[0] : undefined;
+      return normalizeChapterItem(chapter, chapterMeta);
+    });
   } finally {
     loading.value = false;
   }
@@ -113,9 +107,9 @@ onMounted(async () => {
           v-for="chapter in chapters"
           :key="chapter.number"
           class="chapter-item"
-          :class="{ 'chapter-item--disabled': !isChapterAvailable(chapter.number) }"
+          :class="{ 'chapter-item--disabled': !chapter.available }"
           type="button"
-          :disabled="!isChapterAvailable(chapter.number)"
+          :disabled="!chapter.available"
           @click="goReading(chapter.number)"
         >
           <div class="chapter-item__line chapter-item__line--en">
@@ -125,7 +119,7 @@ onMounted(async () => {
           <span class="chapter-item__line chapter-item__line--zh">
             <span v-if="chapter.titleMandarin" class="chapter-item__title-zh">{{ chapter.titleMandarin }}</span>
           </span>
-          <span v-if="!isChapterAvailable(chapter.number)" class="chapter-item__status">Coming soon</span>
+          <span v-if="!chapter.available" class="chapter-item__status">Coming soon</span>
         </button>
       </div>
       <p class="title-screen__hint">

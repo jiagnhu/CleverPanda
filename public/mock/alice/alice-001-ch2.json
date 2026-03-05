@@ -1,0 +1,177 @@
+{
+  "schemaVersion": "cp-book-v1",
+  "bookId": "alice-001",
+  "titleEnglish": "Alice's Adventures in Wonderland",
+  "titleMandarin": "爱丽丝梦游仙境",
+  "chapter": [
+    {
+      "number": 2,
+      "titleEnglish": "The Pool of Tears",
+      "titleMandarin": "眼泪池",
+      "totalPages": 20,
+      "pages": [
+        {
+          "page": 1,
+          "zh": "越来越奇怪！越来越奇怪！爱丽丝叫道。",
+          "enRich": "{g|Curiouser} and {g|curiouser}! {b|cried} {g|Alice}."
+        },
+        {
+          "page": 2,
+          "zh": "她太惊讶了，一时间忘了该怎么说正确的英语。",
+          "enRich": "{g|She} was so surprised that {g|she} {b|forgot} how to {b|speak} good {g|English} for a moment."
+        },
+        {
+          "page": 3,
+          "zh": "现在我像有史以来最大的望远镜一样张开了！",
+          "enRich": "Now {g|I} ’m {b|opening} out like {g|the largest telescope} that ever was!"
+        },
+        {
+          "page": 4,
+          "zh": "再见，脚！爱丽丝说。",
+          "enRich": "Good-bye, {g|feet}! {b|said} {g|Alice}."
+        },
+        {
+          "page": 5,
+          "zh": "她低头看时，她的脚似乎离得很远。",
+          "enRich": "{g|Her feet} seemed very far away when {g|she} {b|looked} down."
+        },
+        {
+          "page": 6,
+          "zh": "哦，我可怜的小脚，我想知道现在谁会帮你们穿鞋和袜子。",
+          "enRich": "Oh, {g|my poor little feet}, {g|I} {b|wonder} who will {b|put} on {g|your shoes and stockings} now."
+        },
+        {
+          "page": 7,
+          "zh": "我会离得太远，没法为你们操心了。",
+          "enRich": "{g|I} shall be too far off to {b|trouble} {g|myself} about {g|you}."
+        },
+        {
+          "page": 8,
+          "zh": "你们得自己想最好的办法。",
+          "enRich": "{g|You} must {b|manage} {g|the best way} {g|you} can."
+        },
+        {
+          "page": 9,
+          "zh": "但我必须对它们好一点，爱丽丝想。",
+          "enRich": "But {g|I} must be kind to {g|them}, {b|thought} {g|Alice}."
+        },
+        {
+          "page": 10,
+          "zh": "或者它们不会按我想走的路走。",
+          "enRich": "Or perhaps {g|they} won’t {b|walk} {g|the way} {g|I} want to {b|go}."
+        },
+        {
+          "page": 11,
+          "zh": "让我想想：我每年圣诞节给它们一双新靴子。",
+          "enRich": "Let {g|me} {b|see}: {g|I} ’ll {b|give} {g|them} a new pair of {g|boots} every {g|Christmas}."
+        },
+        {
+          "page": 12,
+          "zh": "她的头撞到了大厅的屋顶。",
+          "enRich": "{g|Her head} {b|struck} against {g|the roof} of {g|the hall}."
+        },
+        {
+          "page": 13,
+          "zh": "她现在超过九英尺高了。",
+          "enRich": "{g|She} was now more than nine feet high."
+        },
+        {
+          "page": 14,
+          "zh": "她拿起那把小金钥匙，急忙跑到花园门前。",
+          "enRich": "{g|She} {b|took} up {g|the little golden key} and {b|hurried} to {g|the garden door}."
+        },
+        {
+          "page": 15,
+          "zh": "可怜的爱丽丝只能侧身躺着，用一只眼睛看花园。",
+          "enRich": "Poor {g|Alice} could only {b|lie} on one side to {b|look} into {g|the garden} with one {g|eye}."
+        },
+        {
+          "page": 16,
+          "zh": "要进去比以前更没希望了。",
+          "enRich": "To {b|get} through was more hopeless than ever."
+        },
+        {
+          "page": 17,
+          "zh": "她坐下来，又开始哭了。",
+          "enRich": "{g|She} {b|sat} down and {b|began} to {b|cry} again."
+        },
+        {
+          "page": 18,
+          "zh": "你应该为自己感到羞耻，爱丽丝对自己说。",
+          "enRich": "{g|You} ought to be ashamed of {g|yourself}, {b|said} {g|Alice} to {g|herself}."
+        },
+        {
+          "page": 19,
+          "zh": "像你这么大的女孩不应该这样哭。",
+          "enRich": "A great {g|girl} like {g|you} should not {b|cry} like this."
+        },
+        {
+          "page": 20,
+          "zh": "马上停下来，我告诉你！",
+          "enRich": "{b|Stop} this moment, {g|I} {b|tell} {g|you}!"
+        }
+      ],
+      "audio": {
+        "cacheKey": "alice-001-ch2-v1",
+        "baseUrl": "/audio/alice-001/ch2/",
+        "manifest": {
+          "curiouser": "curiouser.v1.mp3",
+          "cried": "cried.v1.mp3",
+          "alice": "alice.v1.mp3",
+          "she": "she.v1.mp3",
+          "forgot": "forgot.v1.mp3",
+          "speak": "speak.v1.mp3",
+          "english": "english.v1.mp3",
+          "i": "i.v1.mp3",
+          "opening": "opening.v1.mp3",
+          "the largest telescope": "the largest telescope.v1.mp3",
+          "feet": "feet.v1.mp3",
+          "said": "said.v1.mp3",
+          "her feet": "her feet.v1.mp3",
+          "looked": "looked.v1.mp3",
+          "my poor little feet": "my poor little feet.v1.mp3",
+          "wonder": "wonder.v1.mp3",
+          "put": "put.v1.mp3",
+          "your shoes and stockings": "your shoes and stockings.v1.mp3",
+          "trouble": "trouble.v1.mp3",
+          "myself": "myself.v1.mp3",
+          "you": "you.v1.mp3",
+          "manage": "manage.v1.mp3",
+          "the best way": "the best way.v1.mp3",
+          "them": "them.v1.mp3",
+          "thought": "thought.v1.mp3",
+          "they": "they.v1.mp3",
+          "walk": "walk.v1.mp3",
+          "the way": "the way.v1.mp3",
+          "go": "go.v1.mp3",
+          "me": "me.v1.mp3",
+          "see": "see.v1.mp3",
+          "give": "give.v1.mp3",
+          "boots": "boots.v1.mp3",
+          "christmas": "christmas.v1.mp3",
+          "her head": "her head.v1.mp3",
+          "struck": "struck.v1.mp3",
+          "the roof": "the roof.v1.mp3",
+          "the hall": "the hall.v1.mp3",
+          "took": "took.v1.mp3",
+          "the little golden key": "the little golden key.v1.mp3",
+          "hurried": "hurried.v1.mp3",
+          "the garden door": "the garden door.v1.mp3",
+          "lie": "lie.v1.mp3",
+          "look": "look.v1.mp3",
+          "the garden": "the garden.v1.mp3",
+          "eye": "eye.v1.mp3",
+          "get": "get.v1.mp3",
+          "sat": "sat.v1.mp3",
+          "began": "began.v1.mp3",
+          "cry": "cry.v1.mp3",
+          "yourself": "yourself.v1.mp3",
+          "herself": "herself.v1.mp3",
+          "girl": "girl.v1.mp3",
+          "stop": "stop.v1.mp3",
+          "tell": "tell.v1.mp3"
+        }
+      }
+    }
+  ]
+}
