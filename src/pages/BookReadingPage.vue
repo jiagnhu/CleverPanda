@@ -43,6 +43,8 @@ onMounted(async () => {
     v-if="contentUrl"
     :active="true"
     :content-url="contentUrl"
+    :book-id="bookId"
+    :chapter-no="chapterNo"
     @edge-prev="goTitlePage"
   />
   <section v-else class="screen reading-fallback">

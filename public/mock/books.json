@@ -17,6 +17,11 @@
           "number": 2,
           "contentUrl": "/mock/alice/alice-001-ch2.json",
           "available": true
+        },
+        {
+          "number": 3,
+          "contentUrl": "/mock/alice/alice-001-ch3.json",
+          "available": true
         }
       ]
     }

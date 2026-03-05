@@ -32,7 +32,7 @@ const createId = (prefix: string) => {
   return `${prefix}_${Date.now()}_${Math.random().toString(16).slice(2)}`;
 };
 
-const getAnonymousUserId = () => {
+export const getOrCreateAnonymousUserId = () => {
   try {
     const existing = localStorage.getItem(ANONYMOUS_USER_KEY);
     if (existing) return existing;
@@ -44,7 +44,7 @@ const getAnonymousUserId = () => {
   }
 };
 
-const getReadingSessionId = () => {
+export const getOrCreateReadingSessionId = () => {
   if (sharedReadingSessionId) return sharedReadingSessionId;
 
   const isHomePath = (() => {
@@ -93,8 +93,8 @@ const isSameOriginUrl = (targetUrl: string) => {
 export const createReadingTracker = (path = '/api/tracking.php'): ReadingTracker => {
   const endpoint = buildApiUrl(path);
   const canUseBeacon = isSameOriginUrl(endpoint);
-  const sessionId = getReadingSessionId();
-  const anonymousUserId = getAnonymousUserId();
+  const sessionId = getOrCreateReadingSessionId();
+  const anonymousUserId = getOrCreateAnonymousUserId();
 
   let pendingClicks = 0;
   let pendingActiveDuration = 0;

@@ -10,7 +10,7 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  (e: 'interactive-click', canonical: string): void;
+  (e: 'interactive-click', payload: { canonical: string; interactiveIndexInLine: number }): void;
 }>();
 
 type TokenItem = {
@@ -56,6 +56,16 @@ const tokenItems = computed<TokenItem[]>(() => {
 const flashIndex = ref<number | null>(null);
 let flashTimer: number | null = null;
 
+const interactiveOrderByToken = computed(() => {
+  let interactiveOrder = 0;
+  return tokenItems.value.map((item) => {
+    if (!item.interactive) return -1;
+    const current = interactiveOrder;
+    interactiveOrder += 1;
+    return current;
+  });
+});
+
 const triggerFlash = (index: number) => {
   flashIndex.value = index;
   if (flashTimer) {
@@ -69,8 +79,13 @@ const triggerFlash = (index: number) => {
 
 const onActivate = (canonical: string, index: number) => {
   if (!canonical) return;
+  const interactiveIndexInLine = interactiveOrderByToken.value[index];
+  if (interactiveIndexInLine < 0) return;
   triggerFlash(index);
-  emit('interactive-click', canonical);
+  emit('interactive-click', {
+    canonical,
+    interactiveIndexInLine
+  });
   playWord(canonical);
 };
 

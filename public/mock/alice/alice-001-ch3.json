@@ -1,0 +1,174 @@
+{
+  "schemaVersion": "cp-book-v1",
+  "bookId": "alice-001",
+  "titleEnglish": "Alice's Adventures in Wonderland",
+  "titleMandarin": "爱丽丝梦游仙境",
+  "chapter": [
+    {
+      "number": 3,
+      "titleEnglish": "A Caucus-Race and a Long Tale",
+      "titleMandarin": "会议赛跑和长故事",
+      "totalPages": 20,
+      "pages": [
+        {
+          "page": 1,
+          "zh": "他们是一群看起来很奇怪的动物，聚集在岸边。",
+          "enRich": "{g|They} were indeed {g|a queer-looking party} that {b|assembled} on {g|the bank}."
+        },
+        {
+          "page": 2,
+          "zh": "他们都湿透了，想办法把自己弄干。",
+          "enRich": "{g|They} were all {g|wet}, and {b|wanted} to {b|get} dry."
+        },
+        {
+          "page": 3,
+          "zh": "老鼠说：安静！我要给你们讲一个干燥的故事。",
+          "enRich": "{g|The Mouse} {b|said}: Silence! {g|I} will {b|tell} {g|you} {g|a dry story}."
+        },
+        {
+          "page": 4,
+          "zh": "老鼠讲了威廉征服者的历史。",
+          "enRich": "{g|The Mouse} {b|spoke} about {g|William the Conqueror}."
+        },
+        {
+          "page": 5,
+          "zh": "但大家还是湿的。",
+          "enRich": "But {g|everyone} was still {g|wet}."
+        },
+        {
+          "page": 6,
+          "zh": "渡渡鸟说：最好的办法是开一场会议赛跑。",
+          "enRich": "{g|The Dodo} {b|said}: {g|The best thing} to {b|get} {g|us} dry would be {g|a Caucus-race}."
+        },
+        {
+          "page": 7,
+          "zh": "什么是会议赛跑？爱丽丝问。",
+          "enRich": "What {b|is} {g|a Caucus-race}? {b|asked} {g|Alice}."
+        },
+        {
+          "page": 8,
+          "zh": "渡渡鸟在地上画了一个圆圈。",
+          "enRich": "{g|The Dodo} {b|marked} out {g|a course} in {g|a sort of circle} on {g|the ground}."
+        },
+        {
+          "page": 9,
+          "zh": "大家随便站好。",
+          "enRich": "{g|Everyone} {b|stood} in places here and there."
+        },
+        {
+          "page": 10,
+          "zh": "渡渡鸟喊：开始！",
+          "enRich": "{g|The Dodo} {b|called} out: {b|Start}!"
+        },
+        {
+          "page": 11,
+          "zh": "他们乱跑了半个小时。",
+          "enRich": "{g|They} {b|ran} about for {g|half an hour}."
+        },
+        {
+          "page": 12,
+          "zh": "渡渡鸟喊：比赛结束了！大家都赢了！",
+          "enRich": "{g|The Dodo} {b|called}: {g|The race} is over! {g|Everybody} has {b|won}!"
+        },
+        {
+          "page": 13,
+          "zh": "现在发奖品。",
+          "enRich": "Now for {g|the prizes}."
+        },
+        {
+          "page": 14,
+          "zh": "爱丽丝拿出糖果给大家。",
+          "enRich": "{g|Alice} {b|handed} out {g|comfits} to {g|everyone}."
+        },
+        {
+          "page": 15,
+          "zh": "爱丽丝也需要奖品。",
+          "enRich": "{g|Alice} must have {g|a prize} too."
+        },
+        {
+          "page": 16,
+          "zh": "爱丽丝从口袋里拿出顶针。",
+          "enRich": "{g|Alice} {b|found} {g|a thimble} in {g|her pocket}."
+        },
+        {
+          "page": 17,
+          "zh": "渡渡鸟把顶针作为奖品给了爱丽丝。",
+          "enRich": "{g|The Dodo} {b|presented} {g|the thimble} to {g|Alice} as {g|her prize}."
+        },
+        {
+          "page": 18,
+          "zh": "老鼠说：我的故事又长又悲伤。",
+          "enRich": "{g|Mine} is {g|a long} and {g|sad tale}, {b|said} {g|the Mouse}."
+        },
+        {
+          "page": 19,
+          "zh": "爱丽丝看着老鼠的尾巴说：它确实很长。",
+          "enRich": "It is {g|a long tail}, {b|said} {g|Alice}, looking at {g|the Mouse}'s {g|tail}."
+        },
+        {
+          "page": 20,
+          "zh": "老鼠生气了，走开了。",
+          "enRich": "{g|The Mouse} {b|got} angry and {b|walked} away."
+        }
+      ],
+      "audio": {
+        "cacheKey": "alice-001-ch3-v1",
+        "baseUrl": "/audio/alice-001/ch3/",
+        "manifest": {
+          "they": "they.v1.mp3",
+          "a queer-looking party": "a queer-looking party.v1.mp3",
+          "assembled": "assembled.v1.mp3",
+          "the bank": "the bank.v1.mp3",
+          "wet": "wet.v1.mp3",
+          "wanted": "wanted.v1.mp3",
+          "get": "get.v1.mp3",
+          "the mouse": "the mouse.v1.mp3",
+          "said": "said.v1.mp3",
+          "i": "i.v1.mp3",
+          "tell": "tell.v1.mp3",
+          "you": "you.v1.mp3",
+          "a dry story": "a dry story.v1.mp3",
+          "spoke": "spoke.v1.mp3",
+          "william the conqueror": "william the conqueror.v1.mp3",
+          "everyone": "everyone.v1.mp3",
+          "the dodo": "the dodo.v1.mp3",
+          "the best thing": "the best thing.v1.mp3",
+          "us": "us.v1.mp3",
+          "a caucus-race": "a caucus-race.v1.mp3",
+          "is": "is.v1.mp3",
+          "asked": "asked.v1.mp3",
+          "alice": "alice.v1.mp3",
+          "marked": "marked.v1.mp3",
+          "a course": "a course.v1.mp3",
+          "a sort of circle": "a sort of circle.v1.mp3",
+          "the ground": "the ground.v1.mp3",
+          "stood": "stood.v1.mp3",
+          "called": "called.v1.mp3",
+          "start": "start.v1.mp3",
+          "ran": "ran.v1.mp3",
+          "half an hour": "half an hour.v1.mp3",
+          "the race": "the race.v1.mp3",
+          "everybody": "everybody.v1.mp3",
+          "won": "won.v1.mp3",
+          "the prizes": "the prizes.v1.mp3",
+          "handed": "handed.v1.mp3",
+          "comfits": "comfits.v1.mp3",
+          "a prize": "a prize.v1.mp3",
+          "found": "found.v1.mp3",
+          "a thimble": "a thimble.v1.mp3",
+          "her pocket": "her pocket.v1.mp3",
+          "presented": "presented.v1.mp3",
+          "the thimble": "the thimble.v1.mp3",
+          "her prize": "her prize.v1.mp3",
+          "mine": "mine.v1.mp3",
+          "a long": "a long.v1.mp3",
+          "sad tale": "sad tale.v1.mp3",
+          "a long tail": "a long tail.v1.mp3",
+          "tail": "tail.v1.mp3",
+          "got": "got.v1.mp3",
+          "walked": "walked.v1.mp3"
+        }
+      }
+    }
+  ]
+}

@@ -6,109 +6,109 @@
   "chapter": [
     {
       "number": 1,
-      "titleEnglish": "Down the Rabbit Hole",
-      "titleMandarin": "掉进兔子洞",
+      "titleEnglish": "Down the Rabbit-Hole",
+      "titleMandarin": "兔子洞",
       "totalPages": 20,
       "pages": [
         {
           "page": 1,
-          "zh": "爱丽丝和她的姐姐坐在河边。",
-          "enRich": "{g|Alice} {b|sat} by {g|the} {g|river} with {g|her} {g|sister}."
+          "zh": "爱丽丝开始觉得坐在姐姐旁边的河岸上很累。",
+          "enRich": "{g|Alice} {b|was beginning} to {b|get} very tired of sitting by {g|her sister} on {g|the river bank}."
         },
         {
           "page": 2,
-          "zh": "她觉得很累很无聊。",
-          "enRich": "{g|She} {b|felt} very tired and bored."
+          "zh": "她没事可做。",
+          "enRich": "{g|She} {b|had} nothing to do."
         },
         {
           "page": 3,
-          "zh": "爱丽丝看了看姐姐的书。",
-          "enRich": "{g|Alice} {b|looked} at {g|her} {g|sister}'s {g|book}."
+          "zh": "她偷偷看了一眼那本书。",
+          "enRich": "{g|She} {b|peeped} into {g|the book}."
         },
         {
           "page": 4,
-          "zh": "那本书没有图片。",
-          "enRich": "{g|The} {g|book} {b|had} no {g|pictures}."
+          "zh": "那本书没有图画。",
+          "enRich": "{g|The book} {b|had} no pictures."
         },
         {
           "page": 5,
-          "zh": "突然，一只白兔跑了过去。",
-          "enRich": "Suddenly {g|a} white {g|rabbit} {b|ran} by."
+          "zh": "爱丽丝想：“一本书有什么用呢？”",
+          "enRich": "{g|Alice} {b|thought}: “What {b|is} {g|the use} of {g|a book}?”"
         },
         {
           "page": 6,
-          "zh": "兔子有大大的粉红色眼睛。",
-          "enRich": "{g|The} {g|rabbit} {b|had} big pink {g|eyes}."
+          "zh": "一只白兔从她身边跑过。",
+          "enRich": "{g|A White Rabbit} {b|ran} close by {g|her}."
         },
         {
           "page": 7,
-          "zh": "兔子从马甲里拿出了一个手表。",
-          "enRich": "{g|The} {g|rabbit} {b|took} {g|a} {g|watch} out of {g|its} {g|waistcoat}."
+          "zh": "兔子说：“哎呀！我要迟到了！”",
+          "enRich": "{g|The Rabbit} {b|said}: “Oh dear! {g|I} shall {b|be} late!”"
         },
         {
           "page": 8,
-          "zh": "爱丽丝一下子跳了起来。",
-          "enRich": "{g|Alice} {b|jumped} to {g|her} {g|feet}."
+          "zh": "爱丽丝一下子站了起来。",
+          "enRich": "{g|Alice} {b|started} to {g|her feet}."
         },
         {
           "page": 9,
-          "zh": "她追着兔子跑。",
-          "enRich": "{g|She} {b|ran} after {g|the} {g|rabbit}."
+          "zh": "她跑过田野去追它。",
+          "enRich": "{g|She} {b|ran} across {g|the field} after {g|it}."
         },
         {
           "page": 10,
-          "zh": "兔子钻进了一个大洞。",
-          "enRich": "{g|The} {g|rabbit} {b|popped} down {g|a} big {g|hole}."
+          "zh": "爱丽丝跟着它跳了下去。",
+          "enRich": "Down {b|went} {g|Alice} after {g|it}."
         },
         {
           "page": 11,
-          "zh": "爱丽丝跟着钻进了洞里。",
-          "enRich": "{g|Alice} {b|went} down {g|the} {g|hole} after {g|it}."
+          "zh": "爱丽丝正在往下掉进一个很深的井里。",
+          "enRich": "{g|Alice} {b|was falling} down {g|a very deep well}."
         },
         {
           "page": 12,
-          "zh": "她不停地往下掉，掉进了一个很深的井里。",
-          "enRich": "{g|She} {b|fell} down and down {g|a} deep {g|well}."
+          "zh": "她有很多时间。",
+          "enRich": "{g|She} {b|had} plenty of time."
         },
         {
           "page": 13,
-          "zh": "井壁上有橱柜和书架。",
-          "enRich": "{g|The} {g|walls} {b|had} {g|cupboards} and {g|bookshelves}."
+          "zh": "她看了看四周。",
+          "enRich": "{g|She} {b|looked} about {g|her}."
         },
         {
           "page": 14,
-          "zh": "爱丽丝看到一个橘子酱的罐子。",
-          "enRich": "{g|Alice} {b|saw} {g|a} {g|jar} of {g|marmalade}."
+          "zh": "她看到橱柜和书架。",
+          "enRich": "{g|She} {b|saw} cupboards and book-shelves."
         },
         {
           "page": 15,
-          "zh": "她掉了好长时间。",
-          "enRich": "{g|She} {b|fell} for {g|a} very long {g|time}."
+          "zh": "她拿下一个罐子。",
+          "enRich": "{g|She} {b|took} down {g|a jar}."
         },
         {
           "page": 16,
-          "zh": "爱丽丝轻轻落在一堆树叶上。",
-          "enRich": "{g|Alice} {b|landed} softly on {g|a} {g|pile} of {g|leaves}."
+          "zh": "罐子是空的。",
+          "enRich": "{g|The jar} {b|was} empty."
         },
         {
           "page": 17,
-          "zh": "兔子还在一条长长的通道里匆匆忙忙地跑。",
-          "enRich": "{g|The} {g|rabbit} {b|was} still {b|hurrying} down {g|a} long {g|passage}."
+          "zh": "往下，往下，往下。",
+          "enRich": "Down, down, down."
         },
         {
           "page": 18,
-          "zh": "爱丽丝发现自己在一个有很多门的大厅里。",
-          "enRich": "{g|Alice} {b|found} {g|herself} in {g|a} big {g|hall} with {g|many} {g|doors}."
+          "zh": "爱丽丝落在一堆棍子上。",
+          "enRich": "{g|Alice} {b|landed} on {g|a heap} of sticks."
         },
         {
           "page": 19,
-          "zh": "桌子上有一个小金钥匙。",
-          "enRich": "On {g|a} {g|table} {b|was} {g|a} small golden {g|key}."
+          "zh": "爱丽丝没有受伤。",
+          "enRich": "{g|Alice} {b|was} not hurt."
         },
         {
           "page": 20,
-          "zh": "爱丽丝看到一扇小门通往一个美丽的花园。",
-          "enRich": "{g|Alice} {b|saw} {g|a} tiny {g|door} that {b|led} to {g|a} beautiful {g|garden}."
+          "zh": "她跳起来站好了。",
+          "enRich": "{g|She} {b|jumped} up on to {g|her feet}."
         }
       ],
       "audio": {
@@ -116,56 +116,41 @@
         "baseUrl": "/audio/alice-001/ch1/",
         "manifest": {
           "alice": "alice.v1.mp3",
-          "sat": "sat.v1.mp3",
-          "the": "the.v1.mp3",
-          "river": "river.v1.mp3",
-          "her": "her.v1.mp3",
-          "sister": "sister.v1.mp3",
+          "was beginning": "was beginning.v1.mp3",
+          "get": "get.v1.mp3",
+          "her sister": "her sister.v1.mp3",
+          "the river bank": "the river bank.v1.mp3",
           "she": "she.v1.mp3",
-          "felt": "felt.v1.mp3",
-          "looked": "looked.v1.mp3",
-          "book": "book.v1.mp3",
           "had": "had.v1.mp3",
-          "pictures": "pictures.v1.mp3",
-          "a": "a.v1.mp3",
-          "rabbit": "rabbit.v1.mp3",
+          "peeped": "peeped.v1.mp3",
+          "the book": "the book.v1.mp3",
+          "thought": "thought.v1.mp3",
+          "is": "is.v1.mp3",
+          "the use": "the use.v1.mp3",
+          "a book": "a book.v1.mp3",
+          "a white rabbit": "a white rabbit.v1.mp3",
           "ran": "ran.v1.mp3",
-          "eyes": "eyes.v1.mp3",
-          "took": "took.v1.mp3",
-          "watch": "watch.v1.mp3",
-          "its": "its.v1.mp3",
-          "waistcoat": "waistcoat.v1.mp3",
-          "jumped": "jumped.v1.mp3",
-          "feet": "feet.v1.mp3",
-          "popped": "popped.v1.mp3",
-          "hole": "hole.v1.mp3",
-          "went": "went.v1.mp3",
+          "her": "her.v1.mp3",
+          "the rabbit": "the rabbit.v1.mp3",
+          "said": "said.v1.mp3",
+          "i": "i.v1.mp3",
+          "be": "be.v1.mp3",
+          "started": "started.v1.mp3",
+          "her feet": "her feet.v1.mp3",
+          "the field": "the field.v1.mp3",
           "it": "it.v1.mp3",
-          "fell": "fell.v1.mp3",
-          "well": "well.v1.mp3",
-          "walls": "walls.v1.mp3",
-          "cupboards": "cupboards.v1.mp3",
-          "bookshelves": "bookshelves.v1.mp3",
+          "went": "went.v1.mp3",
+          "was falling": "was falling.v1.mp3",
+          "a very deep well": "a very deep well.v1.mp3",
+          "looked": "looked.v1.mp3",
           "saw": "saw.v1.mp3",
-          "jar": "jar.v1.mp3",
-          "marmalade": "marmalade.v1.mp3",
-          "time": "time.v1.mp3",
-          "landed": "landed.v1.mp3",
-          "pile": "pile.v1.mp3",
-          "leaves": "leaves.v1.mp3",
+          "took": "took.v1.mp3",
+          "a jar": "a jar.v1.mp3",
+          "the jar": "the jar.v1.mp3",
           "was": "was.v1.mp3",
-          "hurrying": "hurrying.v1.mp3",
-          "passage": "passage.v1.mp3",
-          "found": "found.v1.mp3",
-          "herself": "herself.v1.mp3",
-          "hall": "hall.v1.mp3",
-          "many": "many.v1.mp3",
-          "doors": "doors.v1.mp3",
-          "table": "table.v1.mp3",
-          "key": "key.v1.mp3",
-          "door": "door.v1.mp3",
-          "led": "led.v1.mp3",
-          "garden": "garden.v1.mp3"
+          "landed": "landed.v1.mp3",
+          "a heap": "a heap.v1.mp3",
+          "jumped": "jumped.v1.mp3"
         }
       }
     }

@@ -8,11 +8,18 @@ defineProps<{
 }>();
 
 const emit = defineEmits<{
-  (e: 'interactive-click', canonical: string): void;
+  (e: 'interactive-click', payload: { canonical: string; lineIndex: number; interactiveIndexInLine: number }): void;
 }>();
 
-const onInteractiveClick = (canonical: string) => {
-  emit('interactive-click', canonical);
+const onInteractiveClick = (
+  lineIndex: number,
+  payload: { canonical: string; interactiveIndexInLine: number }
+) => {
+  emit('interactive-click', {
+    canonical: payload.canonical,
+    lineIndex,
+    interactiveIndexInLine: payload.interactiveIndexInLine
+  });
 };
 </script>
 
@@ -30,7 +37,7 @@ const onInteractiveClick = (canonical: string) => {
         :key="`en-${index}`"
         :text="line"
         :interactiveSet="interactiveSet"
-        @interactive-click="onInteractiveClick"
+        @interactive-click="(payload) => onInteractiveClick(index, payload)"
       />
     </div>
   </div>

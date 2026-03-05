@@ -17,8 +17,8 @@
         },
         {
           "page": 2,
-          "zh": "她太惊讶了，一时间忘了该怎么说正确的英语。",
-          "enRich": "{g|She} was so surprised that {g|she} {b|forgot} how to {b|speak} good {g|English} for a moment."
+          "zh": "她太惊讶了，一时间忘了怎么说正确的英语。",
+          "enRich": "{g|She} was so surprised that {g|she} {b|forgot} how to {b|speak} good {g|English} for {g|a moment}."
         },
         {
           "page": 3,
@@ -32,7 +32,7 @@
         },
         {
           "page": 5,
-          "zh": "她低头看时，她的脚似乎离得很远。",
+          "zh": "她的脚看起来离得很远。",
           "enRich": "{g|Her feet} seemed very far away when {g|she} {b|looked} down."
         },
         {
@@ -63,52 +63,52 @@
         {
           "page": 11,
           "zh": "让我想想：我每年圣诞节给它们一双新靴子。",
-          "enRich": "Let {g|me} {b|see}: {g|I} ’ll {b|give} {g|them} a new pair of {g|boots} every {g|Christmas}."
+          "enRich": "Let {g|me} {b|see}: {g|I} ’ll {b|give} {g|them} {g|a new pair} of {g|boots} every {g|Christmas}."
         },
         {
           "page": 12,
-          "zh": "她的头撞到了大厅的屋顶。",
-          "enRich": "{g|Her head} {b|struck} against {g|the roof} of {g|the hall}."
-        },
-        {
-          "page": 13,
-          "zh": "她现在超过九英尺高了。",
-          "enRich": "{g|She} was now more than nine feet high."
-        },
-        {
-          "page": 14,
-          "zh": "她拿起那把小金钥匙，急忙跑到花园门前。",
-          "enRich": "{g|She} {b|took} up {g|the little golden key} and {b|hurried} to {g|the garden door}."
-        },
-        {
-          "page": 15,
-          "zh": "可怜的爱丽丝只能侧身躺着，用一只眼睛看花园。",
-          "enRich": "Poor {g|Alice} could only {b|lie} on one side to {b|look} into {g|the garden} with one {g|eye}."
-        },
-        {
-          "page": 16,
-          "zh": "要进去比以前更没希望了。",
-          "enRich": "To {b|get} through was more hopeless than ever."
-        },
-        {
-          "page": 17,
           "zh": "她坐下来，又开始哭了。",
           "enRich": "{g|She} {b|sat} down and {b|began} to {b|cry} again."
         },
         {
-          "page": 18,
+          "page": 13,
           "zh": "你应该为自己感到羞耻，爱丽丝对自己说。",
           "enRich": "{g|You} ought to be ashamed of {g|yourself}, {b|said} {g|Alice} to {g|herself}."
         },
         {
-          "page": 19,
+          "page": 14,
           "zh": "像你这么大的女孩不应该这样哭。",
-          "enRich": "A great {g|girl} like {g|you} should not {b|cry} like this."
+          "enRich": "{g|A great girl} like {g|you} should not {b|cry} like this."
+        },
+        {
+          "page": 15,
+          "zh": "马上停下来，我告诉你！",
+          "enRich": "{b|Stop} this moment, {g|I} {b|tell} {g|you}!"
+        },
+        {
+          "page": 16,
+          "zh": "她继续哭个不停，眼泪流成了一个大池子。",
+          "enRich": "But {g|she} {b|went} on all the same, and {b|shed} gallons of {g|tears}, until there was {g|a large pool} all round {g|her}."
+        },
+        {
+          "page": 17,
+          "zh": "她掉进了自己哭出来的眼泪池里。",
+          "enRich": "{g|She} {b|found} herself in {g|the pool of tears} which {g|she} {b|had wept} when {g|she} was nine feet high."
+        },
+        {
+          "page": 18,
+          "zh": "她开始游泳，想找出口。",
+          "enRich": "{g|She} {b|swam} about, trying to {b|find} {g|the way} out."
+        },
+        {
+          "page": 19,
+          "zh": "她看到一只老鼠也在池子里游泳。",
+          "enRich": "{g|She} {b|saw} {g|a Mouse} swimming in {g|the pool} too."
         },
         {
           "page": 20,
-          "zh": "马上停下来，我告诉你！",
-          "enRich": "{b|Stop} this moment, {g|I} {b|tell} {g|you}!"
+          "zh": "哦，老鼠先生，你知道怎么出去吗？爱丽丝问。",
+          "enRich": "O {g|Mouse}, do {g|you} {b|know} {g|the way} out of {g|this pool}? {b|asked} {g|Alice}."
         }
       ],
       "audio": {
@@ -122,6 +122,7 @@
           "forgot": "forgot.v1.mp3",
           "speak": "speak.v1.mp3",
           "english": "english.v1.mp3",
+          "a moment": "a moment.v1.mp3",
           "i": "i.v1.mp3",
           "opening": "opening.v1.mp3",
           "the largest telescope": "the largest telescope.v1.mp3",
@@ -147,29 +148,34 @@
           "me": "me.v1.mp3",
           "see": "see.v1.mp3",
           "give": "give.v1.mp3",
+          "a new pair": "a new pair.v1.mp3",
           "boots": "boots.v1.mp3",
           "christmas": "christmas.v1.mp3",
-          "her head": "her head.v1.mp3",
-          "struck": "struck.v1.mp3",
-          "the roof": "the roof.v1.mp3",
-          "the hall": "the hall.v1.mp3",
-          "took": "took.v1.mp3",
-          "the little golden key": "the little golden key.v1.mp3",
-          "hurried": "hurried.v1.mp3",
-          "the garden door": "the garden door.v1.mp3",
-          "lie": "lie.v1.mp3",
-          "look": "look.v1.mp3",
-          "the garden": "the garden.v1.mp3",
-          "eye": "eye.v1.mp3",
-          "get": "get.v1.mp3",
           "sat": "sat.v1.mp3",
           "began": "began.v1.mp3",
           "cry": "cry.v1.mp3",
           "yourself": "yourself.v1.mp3",
           "herself": "herself.v1.mp3",
-          "girl": "girl.v1.mp3",
+          "a great girl": "a great girl.v1.mp3",
           "stop": "stop.v1.mp3",
-          "tell": "tell.v1.mp3"
+          "tell": "tell.v1.mp3",
+          "went": "went.v1.mp3",
+          "shed": "shed.v1.mp3",
+          "tears": "tears.v1.mp3",
+          "a large pool": "a large pool.v1.mp3",
+          "her": "her.v1.mp3",
+          "found": "found.v1.mp3",
+          "the pool of tears": "the pool of tears.v1.mp3",
+          "had wept": "had wept.v1.mp3",
+          "swam": "swam.v1.mp3",
+          "find": "find.v1.mp3",
+          "saw": "saw.v1.mp3",
+          "a mouse": "a mouse.v1.mp3",
+          "the pool": "the pool.v1.mp3",
+          "mouse": "mouse.v1.mp3",
+          "know": "know.v1.mp3",
+          "this pool": "this pool.v1.mp3",
+          "asked": "asked.v1.mp3"
         }
       }
     }
