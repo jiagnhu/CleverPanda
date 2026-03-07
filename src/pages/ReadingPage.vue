@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vue';
 import BilingualLine from '@/components/BilingualLine.vue';
+import MoreChaptersModal from '@/components/MoreChaptersModal.vue';
 import ParentFeedbackModal from '@/components/ParentFeedbackModal.vue';
 import ProgressBar from '@/components/ProgressBar.vue';
 import { setAudioConfig, setUseLocalAudio } from '@/audio/player';
-import { createReadingTracker } from '@/tracking/readingTracker';
+import { createReadingTracker, getOrCreateReadingSessionId } from '@/tracking/readingTracker';
 import {
   markChapterCompletedOnce
 } from '@/tracking/behaviorTracker';
@@ -21,7 +22,6 @@ const props = withDefaults(
     showNextChapterButton?: boolean;
     nextChapterLabel?: string;
     showBackToChaptersButton?: boolean;
-    backToChaptersLabel?: string;
   }>(),
   {
     active: true,
@@ -31,8 +31,7 @@ const props = withDefaults(
     chapterNo: null,
     showNextChapterButton: false,
     nextChapterLabel: '下一章',
-    showBackToChaptersButton: false,
-    backToChaptersLabel: '返回章节列表'
+    showBackToChaptersButton: false
   }
 );
 
@@ -41,7 +40,7 @@ const emit = defineEmits<{
   (e: 'edge-next'): void;
   (e: 'demo-complete'): void;
   (e: 'next-chapter'): void;
-  (e: 'back-to-chapters'): void;
+  (e: 'exit-home'): void;
 }>();
 
 type ChapterItem = {
@@ -118,6 +117,13 @@ const showBackToChaptersCta = computed(
     props.showBackToChaptersButton &&
     !props.demoEndPage
 );
+const lastPageNextChapterUnlocked = ref(false);
+const nextChapterEnabled = computed(
+  () => !currentLastInteractiveTarget.value || lastPageNextChapterUnlocked.value
+);
+const showBackToChaptersButton = computed(
+  () => showBackToChaptersCta.value && nextChapterEnabled.value
+);
 
 const interactiveSet = shallowRef<Set<string>>(new Set());
 const loading = ref(true);
@@ -137,6 +143,7 @@ const tracker = shallowRef<ReturnType<typeof createReadingTracker> | null>(null)
 const reachedSentence6 = ref(false);
 const chapterCompletionRecorded = ref(false);
 const parentFeedbackVisible = ref(false);
+const moreChaptersModalVisible = ref(false);
 const precacheStatus = ref<'idle' | 'downloading' | 'done' | 'error'>('idle');
 const precacheProgress = ref({ done: 0, total: 0 });
 const precachePercent = computed(() => {
@@ -521,7 +528,11 @@ const onChapterCompleted = async () => {
 
   chapterCompletionRecorded.value = true;
   if (result === 'recorded') {
-    parentFeedbackVisible.value = true;
+    if (showBackToChaptersCta.value) {
+      parentFeedbackVisible.value = false;
+    } else {
+      parentFeedbackVisible.value = true;
+    }
   }
 };
 
@@ -530,15 +541,66 @@ const onParentFeedbackSubmitted = () => {
 };
 
 const onNextChapter = () => {
+  if (!nextChapterEnabled.value) return;
   emit('next-chapter');
 };
 
+const MORE_CHAPTERS_MODAL_SHOWN_PREFIX = 'cp_more_chapters_modal_shown';
+
+const getMoreChaptersModalShownKey = () => {
+  if (!props.bookId || !props.chapterNo) return '';
+  const sessionId = getOrCreateReadingSessionId();
+  if (!sessionId) return '';
+  return `${MORE_CHAPTERS_MODAL_SHOWN_PREFIX}_${sessionId}_${props.bookId}_${props.chapterNo}`;
+};
+
+const hasShownMoreChaptersModalInSession = () => {
+  const key = getMoreChaptersModalShownKey();
+  if (!key) return false;
+  try {
+    return localStorage.getItem(key) === '1';
+  } catch {
+    return false;
+  }
+};
+
+const markMoreChaptersModalShownInSession = () => {
+  const key = getMoreChaptersModalShownKey();
+  if (!key) return;
+  try {
+    localStorage.setItem(key, '1');
+  } catch {}
+};
+
 const onBackToChapters = () => {
-  emit('back-to-chapters');
+  emit('exit-home');
+};
+
+const onMoreChaptersModalClose = () => {
+  moreChaptersModalVisible.value = false;
+};
+
+const onMoreChaptersExitHome = () => {
+  moreChaptersModalVisible.value = false;
+  emit('exit-home');
 };
 
 const onInteractiveWordClick = (payload: InteractiveClickPayload) => {
   tracker.value?.onWordClick();
+  if (isLastPage.value && currentLastInteractiveTarget.value) {
+    const isLastInteractiveClick =
+      payload.lineIndex === currentLastInteractiveTarget.value.lineIndex &&
+      payload.interactiveIndexInLine === currentLastInteractiveTarget.value.interactiveIndexInLine;
+    if (isLastInteractiveClick) {
+      lastPageNextChapterUnlocked.value = true;
+      if (showBackToChaptersCta.value && !moreChaptersModalVisible.value) {
+        if (!hasShownMoreChaptersModalInSession()) {
+          markMoreChaptersModalShownInSession();
+          moreChaptersModalVisible.value = true;
+        }
+      }
+    }
+  }
   if (shouldMarkChapterComplete(payload)) {
     void onChapterCompleted();
   }
@@ -572,7 +634,10 @@ onBeforeUnmount(() => {
   tracker.value = null;
 });
 
-watch(currentIndex, (index) => {
+watch(currentIndex, (index, prevIndex) => {
+  if (index !== prevIndex) {
+    lastPageNextChapterUnlocked.value = false;
+  }
   if (index < 5 || reachedSentence6.value) return;
   reachedSentence6.value = true;
   tracker.value?.onReachedSentence6();
@@ -604,8 +669,10 @@ watch(
     hasLoaded.value = false;
     items.value = [];
     currentIndex.value = 0;
+    lastPageNextChapterUnlocked.value = false;
     chapterCompletionRecorded.value = false;
     parentFeedbackVisible.value = false;
+    moreChaptersModalVisible.value = false;
     if (!props.active) return;
     const loaded = await loadChapter();
     if (loaded) {
@@ -646,17 +713,18 @@ watch(
           v-if="showNextChapterCta"
           type="button"
           class="next-chapter-btn"
+          :disabled="!nextChapterEnabled"
           @click="onNextChapter"
         >
           {{ nextChapterLabel }}
         </button>
         <button
-          v-if="showBackToChaptersCta"
+          v-if="showBackToChaptersButton"
           type="button"
           class="next-chapter-btn"
           @click="onBackToChapters"
         >
-          {{ backToChaptersLabel }}
+          返回章节列表
         </button>
       </div>
     </div>
@@ -667,6 +735,14 @@ watch(
       :book-id="bookId"
       :chapter-no="chapterNo"
       @submitted="onParentFeedbackSubmitted"
+    />
+
+    <MoreChaptersModal
+      :visible="moreChaptersModalVisible"
+      :book-id="bookId"
+      :chapter-no="chapterNo"
+      @close="onMoreChaptersModalClose"
+      @exit-home="onMoreChaptersExitHome"
     />
   </section>
 </template>
@@ -717,6 +793,12 @@ watch(
 
 .next-chapter-btn:active {
   transform: translateY(1px);
+}
+
+.next-chapter-btn:disabled {
+  opacity: 0.45;
+  box-shadow: none;
+  transform: none;
 }
 
 .precache-progress {

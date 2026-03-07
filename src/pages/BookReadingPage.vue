@@ -37,6 +37,10 @@ const goNextChapter = () => {
   });
 };
 
+const goChapterList = () => {
+  goTitlePage();
+};
+
 const loadChapterMeta = async () => {
   if (!bookId.value) {
     void router.replace({ path: '/' });
@@ -83,10 +87,9 @@ watch(
     :show-next-chapter-button="nextChapterNo !== null"
     :next-chapter-label="nextChapterLabel"
     :show-back-to-chapters-button="nextChapterNo === null"
-    back-to-chapters-label="返回章节列表"
     @edge-prev="goTitlePage"
     @next-chapter="goNextChapter"
-    @back-to-chapters="goTitlePage"
+    @exit-home="goChapterList"
   />
   <section v-else class="screen reading-fallback">
     <p class="reading-fallback__text">Content not found.</p>

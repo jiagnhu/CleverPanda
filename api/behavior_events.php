@@ -24,6 +24,122 @@ function respond_error($code, $detail = null, $debug = false) {
   echo json_encode($payload);
 }
 
+function decode_json_map($raw) {
+  if (!is_string($raw) || trim($raw) === '') {
+    return [];
+  }
+  $decoded = json_decode($raw, true);
+  if (!is_array($decoded)) {
+    return [];
+  }
+  return $decoded;
+}
+
+function encode_json_map($value) {
+  if (!is_array($value) || count($value) === 0) {
+    return null;
+  }
+  return json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+}
+
+function fetch_user_summary_row(PDO $pdo, $sessionId, $bookId) {
+  $stmt = $pdo->prepare(
+    'SELECT
+      return_visit_hours,
+      return_visit_days,
+      completed_chapters_json,
+      parent_feedback_json,
+      more_chapters_json
+     FROM behavior_user_summary
+     WHERE session_id = :session_id
+       AND book_id = :book_id
+     LIMIT 1'
+  );
+  $stmt->execute([
+    ':session_id' => $sessionId,
+    ':book_id' => $bookId
+  ]);
+  $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+  if (!$row) {
+    return [
+      'return_visit_hours' => null,
+      'return_visit_days' => null,
+      'completed_chapters_json' => [],
+      'parent_feedback_json' => [],
+      'more_chapters_json' => []
+    ];
+  }
+
+  return [
+    'return_visit_hours' => isset($row['return_visit_hours']) ? $row['return_visit_hours'] : null,
+    'return_visit_days' => isset($row['return_visit_days']) ? $row['return_visit_days'] : null,
+    'completed_chapters_json' => decode_json_map($row['completed_chapters_json'] ?? ''),
+    'parent_feedback_json' => decode_json_map($row['parent_feedback_json'] ?? ''),
+    'more_chapters_json' => decode_json_map($row['more_chapters_json'] ?? '')
+  ];
+}
+
+function upsert_user_summary(
+  PDO $pdo,
+  $sessionId,
+  $anonymousUserId,
+  $bookId,
+  $returnVisitHours,
+  $returnVisitDays,
+  $completedChaptersJson,
+  $parentFeedbackJson,
+  $moreChaptersJson
+) {
+  $stmt = $pdo->prepare(
+    'INSERT INTO behavior_user_summary
+      (
+        session_id,
+        anonymous_user_id,
+        book_id,
+        return_visit_hours,
+        return_visit_days,
+        completed_chapters_json,
+        parent_feedback_json,
+        more_chapters_json,
+        created_at,
+        updated_at
+      )
+     VALUES
+      (
+        :session_id,
+        :anonymous_user_id,
+        :book_id,
+        :return_visit_hours,
+        :return_visit_days,
+        :completed_chapters_json,
+        :parent_feedback_json,
+        :more_chapters_json,
+        NOW(),
+        NOW()
+      )
+     ON DUPLICATE KEY UPDATE
+      anonymous_user_id = VALUES(anonymous_user_id),
+      return_visit_hours = COALESCE(VALUES(return_visit_hours), return_visit_hours),
+      return_visit_days = COALESCE(VALUES(return_visit_days), return_visit_days),
+      completed_chapters_json = COALESCE(VALUES(completed_chapters_json), completed_chapters_json),
+      parent_feedback_json = COALESCE(VALUES(parent_feedback_json), parent_feedback_json),
+      more_chapters_json = COALESCE(VALUES(more_chapters_json), more_chapters_json),
+      updated_at = NOW()'
+  );
+
+  $stmt->execute([
+    ':session_id' => $sessionId,
+    ':anonymous_user_id' => $anonymousUserId,
+    ':book_id' => $bookId,
+    ':return_visit_hours' => $returnVisitHours,
+    ':return_visit_days' => $returnVisitDays,
+    ':completed_chapters_json' => $completedChaptersJson,
+    ':parent_feedback_json' => $parentFeedbackJson,
+    ':more_chapters_json' => $moreChaptersJson
+  ]);
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
   http_response_code(204);
   exit;
@@ -52,6 +168,10 @@ $hoursSinceLastVisit = isset($data['hours_since_last_visit']) ? (float)$data['ho
 $daysSinceLastVisit = isset($data['days_since_last_visit']) ? (float)$data['days_since_last_visit'] : null;
 $likedRaw = isset($data['liked']) ? strtolower(trim((string)$data['liked'])) : '';
 $comment = isset($data['comment']) ? trim((string)$data['comment']) : '';
+$moreChaptersResponseRaw = isset($data['more_chapters_response'])
+  ? strtolower(trim((string)$data['more_chapters_response']))
+  : '';
+$moreChaptersNote = isset($data['more_chapters_note']) ? trim((string)$data['more_chapters_note']) : '';
 $eventAtRaw = isset($data['event_at']) ? trim((string)$data['event_at']) : '';
 $eventAt = null;
 if ($eventAtRaw !== '') {
@@ -64,7 +184,7 @@ if ($eventAt === null) {
   $eventAt = date('Y-m-d H:i:s');
 }
 
-if (!in_array($eventType, ['return_visit', 'chapter_complete', 'parent_feedback'], true)) {
+if (!in_array($eventType, ['return_visit', 'chapter_complete', 'parent_feedback', 'more_chapters_response'], true)) {
   http_response_code(400);
   respond_error('invalid_event_type');
   exit;
@@ -82,7 +202,7 @@ if ($anonymousUserId === '' || strlen($anonymousUserId) > 80) {
   exit;
 }
 
-if (($eventType === 'chapter_complete' || $eventType === 'parent_feedback')) {
+if (in_array($eventType, ['chapter_complete', 'parent_feedback', 'more_chapters_response'], true)) {
   if ($bookId === '' || strlen($bookId) > 80) {
     http_response_code(400);
     respond_error('invalid_book_id');
@@ -117,6 +237,19 @@ if ($eventType === 'parent_feedback') {
   if (strlen($comment) > 500) {
     http_response_code(400);
     respond_error('comment_too_long');
+    exit;
+  }
+}
+
+if ($eventType === 'more_chapters_response') {
+  if (!in_array($moreChaptersResponseRaw, ['yes', 'no'], true)) {
+    http_response_code(400);
+    respond_error('invalid_more_chapters_response');
+    exit;
+  }
+  if (strlen($moreChaptersNote) > 500) {
+    http_response_code(400);
+    respond_error('more_chapters_note_too_long');
     exit;
   }
 }
@@ -184,25 +317,17 @@ try {
       ':event_at' => $eventAt
     ]);
 
-    $summaryStmt = $pdo->prepare(
-      'INSERT INTO behavior_session_summary
-        (session_id, anonymous_user_id, book_id, chapter_no, return_visit_hours, return_visit_days, created_at, updated_at)
-       VALUES
-        (:session_id, :anonymous_user_id, :book_id, :chapter_no, :return_visit_hours, :return_visit_days, NOW(), NOW())
-       ON DUPLICATE KEY UPDATE
-        anonymous_user_id = VALUES(anonymous_user_id),
-        return_visit_hours = VALUES(return_visit_hours),
-        return_visit_days = VALUES(return_visit_days),
-        updated_at = NOW()'
+    upsert_user_summary(
+      $pdo,
+      $sessionId,
+      $anonymousUserId,
+      '',
+      $hoursSinceLastVisit,
+      $daysSinceLastVisit,
+      null,
+      null,
+      null
     );
-    $summaryStmt->execute([
-      ':session_id' => $sessionId,
-      ':anonymous_user_id' => $anonymousUserId,
-      ':book_id' => '',
-      ':chapter_no' => 0,
-      ':return_visit_hours' => $hoursSinceLastVisit,
-      ':return_visit_days' => $daysSinceLastVisit
-    ]);
   } elseif ($eventType === 'chapter_complete') {
     $stmt = $pdo->prepare(
       'INSERT INTO behavior_events
@@ -222,27 +347,25 @@ try {
       ':event_at' => $eventAt
     ]);
 
-    $summaryStmt = $pdo->prepare(
-      'INSERT INTO behavior_session_summary
-        (session_id, anonymous_user_id, book_id, chapter_no, chapter_completed_at, created_at, updated_at)
-       VALUES
-       (:session_id, :anonymous_user_id, :book_id, :chapter_no, :chapter_completed_at, NOW(), NOW())
-       ON DUPLICATE KEY UPDATE
-        anonymous_user_id = VALUES(anonymous_user_id),
-        chapter_completed_at = CASE
-          WHEN chapter_completed_at IS NULL THEN VALUES(chapter_completed_at)
-          ELSE chapter_completed_at
-        END,
-        updated_at = NOW()'
+    $userSummary = fetch_user_summary_row($pdo, $sessionId, $bookId);
+    $completedChapters = $userSummary['completed_chapters_json'];
+    $chapterKey = (string)$chapterNo;
+    if (!array_key_exists($chapterKey, $completedChapters)) {
+      $completedChapters[$chapterKey] = $eventAt;
+    }
+
+    upsert_user_summary(
+      $pdo,
+      $sessionId,
+      $anonymousUserId,
+      $bookId,
+      null,
+      null,
+      encode_json_map($completedChapters),
+      null,
+      null
     );
-    $summaryStmt->execute([
-      ':session_id' => $sessionId,
-      ':anonymous_user_id' => $anonymousUserId,
-      ':book_id' => $bookId,
-      ':chapter_no' => $chapterNo,
-      ':chapter_completed_at' => $eventAt
-    ]);
-  } else {
+  } elseif ($eventType === 'parent_feedback') {
     $stmt = $pdo->prepare(
       'INSERT INTO behavior_events
         (event_type, session_id, anonymous_user_id, book_id, chapter_no, liked, comment, event_at, created_at, updated_at)
@@ -266,25 +389,70 @@ try {
       ':event_at' => $eventAt
     ]);
 
-    $summaryStmt = $pdo->prepare(
-      'INSERT INTO behavior_session_summary
-        (session_id, anonymous_user_id, book_id, chapter_no, liked, comment, created_at, updated_at)
+    $userSummary = fetch_user_summary_row($pdo, $sessionId, $bookId);
+    $chapterKey = (string)$chapterNo;
+    $parentFeedback = $userSummary['parent_feedback_json'];
+    $parentFeedback[$chapterKey] = [
+      'liked' => $likedRaw,
+      'comment' => $comment === '' ? null : $comment,
+      'event_at' => $eventAt
+    ];
+
+    upsert_user_summary(
+      $pdo,
+      $sessionId,
+      $anonymousUserId,
+      $bookId,
+      null,
+      null,
+      null,
+      encode_json_map($parentFeedback),
+      null
+    );
+  } else {
+    $stmt = $pdo->prepare(
+      'INSERT INTO behavior_events
+        (event_type, session_id, anonymous_user_id, book_id, chapter_no, more_chapters_response, more_chapters_note, event_at, created_at, updated_at)
        VALUES
-       (:session_id, :anonymous_user_id, :book_id, :chapter_no, :liked, :comment, NOW(), NOW())
+        (:event_type, :session_id, :anonymous_user_id, :book_id, :chapter_no, :more_chapters_response, :more_chapters_note, :event_at, NOW(), NOW())
        ON DUPLICATE KEY UPDATE
-        anonymous_user_id = VALUES(anonymous_user_id),
-        liked = VALUES(liked),
-        comment = VALUES(comment),
+        session_id = VALUES(session_id),
+        more_chapters_response = VALUES(more_chapters_response),
+        more_chapters_note = VALUES(more_chapters_note),
+        event_at = VALUES(event_at),
         updated_at = NOW()'
     );
-    $summaryStmt->execute([
+    $stmt->execute([
+      ':event_type' => $eventType,
       ':session_id' => $sessionId,
       ':anonymous_user_id' => $anonymousUserId,
       ':book_id' => $bookId,
       ':chapter_no' => $chapterNo,
-      ':liked' => $likedRaw,
-      ':comment' => $comment === '' ? null : $comment
+      ':more_chapters_response' => $moreChaptersResponseRaw,
+      ':more_chapters_note' => $moreChaptersNote === '' ? null : $moreChaptersNote,
+      ':event_at' => $eventAt
     ]);
+
+    $userSummary = fetch_user_summary_row($pdo, $sessionId, $bookId);
+    $chapterKey = (string)$chapterNo;
+    $moreChapters = $userSummary['more_chapters_json'];
+    $moreChapters[$chapterKey] = [
+      'response' => $moreChaptersResponseRaw,
+      'note' => $moreChaptersNote === '' ? null : $moreChaptersNote,
+      'event_at' => $eventAt
+    ];
+
+    upsert_user_summary(
+      $pdo,
+      $sessionId,
+      $anonymousUserId,
+      $bookId,
+      null,
+      null,
+      null,
+      null,
+      encode_json_map($moreChapters)
+    );
   }
 
   $pdo->commit();

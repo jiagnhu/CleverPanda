@@ -11,9 +11,14 @@ const chapterCompleteLocks = new Set<string>();
 
 export type ChapterCompletionResult = 'recorded' | 'already' | 'failed';
 export type ParentFeedbackChoice = 'yes' | 'no';
+export type MoreChaptersResponse = 'yes' | 'no';
 
 type BaseEventPayload = {
-  event_type: 'return_visit' | 'chapter_complete' | 'parent_feedback';
+  event_type:
+    | 'return_visit'
+    | 'chapter_complete'
+    | 'parent_feedback'
+    | 'more_chapters_response';
   session_id: string;
   anonymous_user_id: string;
   event_at: string;
@@ -28,8 +33,8 @@ const postBehaviorEvent = async (payload: BaseEventPayload & Record<string, unkn
   }
 };
 
-const getChapterCompletedKey = (bookId: string, chapterNo: number) =>
-  `${CHAPTER_COMPLETED_PREFIX}${bookId}_${chapterNo}`;
+const getChapterCompletedKey = (sessionId: string, bookId: string, chapterNo: number) =>
+  `${CHAPTER_COMPLETED_PREFIX}${sessionId}_${bookId}_${chapterNo}`;
 
 const isPositiveInteger = (value: unknown): value is number =>
   typeof value === 'number' && Number.isInteger(value) && value > 0;
@@ -85,7 +90,10 @@ export const markChapterCompletedOnce = async (bookId: string, chapterNo: number
     return 'failed';
   }
 
-  const key = getChapterCompletedKey(normalizedBookId, chapterNo);
+  const sessionId = getOrCreateReadingSessionId();
+  if (!sessionId) return 'failed';
+
+  const key = getChapterCompletedKey(sessionId, normalizedBookId, chapterNo);
   try {
     if (localStorage.getItem(key) === 'true') {
       return 'already';
@@ -97,7 +105,6 @@ export const markChapterCompletedOnce = async (bookId: string, chapterNo: number
   }
 
   chapterCompleteLocks.add(key);
-  const sessionId = getOrCreateReadingSessionId();
   const anonymousUserId = getOrCreateAnonymousUserId();
 
   const ok = await postBehaviorEvent({
@@ -144,6 +151,36 @@ export const submitParentFeedback = async (
     chapter_no: chapterNo,
     liked: normalizedChoice,
     comment: normalizedComment,
+    event_at: new Date().toISOString()
+  });
+};
+
+export const submitMoreChaptersResponse = async (
+  bookId: string,
+  chapterNo: number,
+  response: MoreChaptersResponse,
+  note: string
+) => {
+  const normalizedBookId = bookId.trim();
+  if (!normalizedBookId || !isPositiveInteger(chapterNo)) {
+    return false;
+  }
+
+  const normalizedResponse = response === 'yes' ? 'yes' : response === 'no' ? 'no' : '';
+  if (!normalizedResponse) return false;
+
+  const sessionId = getOrCreateReadingSessionId();
+  const anonymousUserId = getOrCreateAnonymousUserId();
+  const normalizedNote = note.trim();
+
+  return postBehaviorEvent({
+    event_type: 'more_chapters_response',
+    session_id: sessionId,
+    anonymous_user_id: anonymousUserId,
+    book_id: normalizedBookId,
+    chapter_no: chapterNo,
+    more_chapters_response: normalizedResponse,
+    more_chapters_note: normalizedNote,
     event_at: new Date().toISOString()
   });
 };

@@ -18,7 +18,7 @@
         {
           "page": 2,
           "zh": "她没事可做。",
-          "enRich": "{g|She} {b|had} nothing to do."
+          "enRich": "{g|She} {b|had} {g|nothing} to do."
         },
         {
           "page": 3,
@@ -28,7 +28,7 @@
         {
           "page": 4,
           "zh": "那本书没有图画。",
-          "enRich": "{g|The book} {b|had} no pictures."
+          "enRich": "{g|The book} {b|had} {g|no pictures}."
         },
         {
           "page": 5,
@@ -68,7 +68,7 @@
         {
           "page": 12,
           "zh": "她有很多时间。",
-          "enRich": "{g|She} {b|had} plenty of time."
+          "enRich": "{g|She} {b|had} {g|plenty of time}."
         },
         {
           "page": 13,
@@ -122,8 +122,10 @@
           "the river bank": "the river bank.v1.mp3",
           "she": "she.v1.mp3",
           "had": "had.v1.mp3",
+          "nothing": "nothing.v1.mp3",
           "peeped": "peeped.v1.mp3",
           "the book": "the book.v1.mp3",
+          "no pictures": "no pictures.v1.mp3",
           "thought": "thought.v1.mp3",
           "is": "is.v1.mp3",
           "the use": "the use.v1.mp3",
@@ -142,6 +144,7 @@
           "went": "went.v1.mp3",
           "was falling": "was falling.v1.mp3",
           "a very deep well": "a very deep well.v1.mp3",
+          "plenty of time": "plenty of time.v1.mp3",
           "looked": "looked.v1.mp3",
           "saw": "saw.v1.mp3",
           "took": "took.v1.mp3",
