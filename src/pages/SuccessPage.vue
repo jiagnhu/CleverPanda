@@ -65,10 +65,10 @@ onMounted(async () => {
           <path d="M 166 124 Q 186 130 198 146" class="panda-arm panda-arm--right" />
         </svg>
       </div>
-      <h1 class="success-screen__title">Great reading together!</h1>
-      <p class="success-screen__subtitle">Ready for a real adventure?</p>
+      <h1 class="success-screen__title">一起阅读真是太棒了！</h1>
+      <p class="success-screen__subtitle">准备好来一场真正的冒险了吗？</p>
       <button class="success-screen__cta" type="button" @click="goToTitle">
-        <span class="success-screen__cta-main">{{ ctaLabel }}</span>
+        <!-- <span class="success-screen__cta-main">{{ ctaLabel }}</span> -->
         <span v-if="ctaSubtitle" class="success-screen__cta-sub">{{ ctaSubtitle }}</span>
       </button>
     </div>
@@ -140,7 +140,7 @@ onMounted(async () => {
 
 .success-screen__title {
   margin: 0;
-  font-size: 34px;
+  font-size: 30px;
   line-height: 1.2;
   font-family: "Gotham Rounded", "FZCuYuan";
   font-weight: 700;
@@ -154,6 +154,7 @@ onMounted(async () => {
 }
 
 .success-screen__cta {
+  height: 45px;
   margin-top: 12px;
   border: 0;
   border-radius: 24px;

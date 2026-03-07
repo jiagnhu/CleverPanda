@@ -1,13 +1,12 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vue';
 import BilingualLine from '@/components/BilingualLine.vue';
+import ParentFeedbackModal from '@/components/ParentFeedbackModal.vue';
 import ProgressBar from '@/components/ProgressBar.vue';
 import { setAudioConfig, setUseLocalAudio } from '@/audio/player';
 import { createReadingTracker } from '@/tracking/readingTracker';
 import {
-  markChapterCompletedOnce,
-  submitParentFeedback,
-  type ParentFeedbackChoice
+  markChapterCompletedOnce
 } from '@/tracking/behaviorTracker';
 import { collectEnRichWords, parseEnRichLine } from '@/utils/enRich';
 import { canonicalize, tokenize } from '@/utils/tokenize';
@@ -19,13 +18,21 @@ const props = withDefaults(
     demoEndPage?: number | null;
     bookId?: string;
     chapterNo?: number | null;
+    showNextChapterButton?: boolean;
+    nextChapterLabel?: string;
+    showBackToChaptersButton?: boolean;
+    backToChaptersLabel?: string;
   }>(),
   {
     active: true,
     contentUrl: '',
     demoEndPage: null,
     bookId: '',
-    chapterNo: null
+    chapterNo: null,
+    showNextChapterButton: false,
+    nextChapterLabel: '下一章',
+    showBackToChaptersButton: false,
+    backToChaptersLabel: '返回章节列表'
   }
 );
 
@@ -33,6 +40,8 @@ const emit = defineEmits<{
   (e: 'edge-prev'): void;
   (e: 'edge-next'): void;
   (e: 'demo-complete'): void;
+  (e: 'next-chapter'): void;
+  (e: 'back-to-chapters'): void;
 }>();
 
 type ChapterItem = {
@@ -99,7 +108,16 @@ const progress = computed(() => {
 const isLastPage = computed(
   () => items.value.length > 0 && currentIndex.value === items.value.length - 1
 );
-const canSubmitParentFeedback = computed(() => parentFeedbackChoice.value !== '');
+const showNextChapterCta = computed(
+  () => isLastPage.value && props.showNextChapterButton && !props.demoEndPage
+);
+const showBackToChaptersCta = computed(
+  () =>
+    isLastPage.value &&
+    !showNextChapterCta.value &&
+    props.showBackToChaptersButton &&
+    !props.demoEndPage
+);
 
 const interactiveSet = shallowRef<Set<string>>(new Set());
 const loading = ref(true);
@@ -119,10 +137,6 @@ const tracker = shallowRef<ReturnType<typeof createReadingTracker> | null>(null)
 const reachedSentence6 = ref(false);
 const chapterCompletionRecorded = ref(false);
 const parentFeedbackVisible = ref(false);
-const parentFeedbackChoice = ref<ParentFeedbackChoice | ''>('');
-const parentFeedbackComment = ref('');
-const parentFeedbackSubmitting = ref(false);
-const parentFeedbackError = ref('');
 const precacheStatus = ref<'idle' | 'downloading' | 'done' | 'error'>('idle');
 const precacheProgress = ref({ done: 0, total: 0 });
 const precachePercent = computed(() => {
@@ -507,36 +521,20 @@ const onChapterCompleted = async () => {
 
   chapterCompletionRecorded.value = true;
   if (result === 'recorded') {
-    parentFeedbackChoice.value = '';
-    parentFeedbackComment.value = '';
-    parentFeedbackError.value = '';
     parentFeedbackVisible.value = true;
   }
 };
 
-const onParentFeedbackSubmit = async () => {
-  if (!props.bookId || !props.chapterNo) return;
-  if (!canSubmitParentFeedback.value || parentFeedbackSubmitting.value) return;
-  const choice = parentFeedbackChoice.value;
-  if (choice !== 'yes' && choice !== 'no') return;
-
-  parentFeedbackSubmitting.value = true;
-  parentFeedbackError.value = '';
-  const ok = await submitParentFeedback(
-    props.bookId,
-    props.chapterNo,
-    choice,
-    parentFeedbackComment.value
-  );
-  parentFeedbackSubmitting.value = false;
-
-  if (!ok) {
-    parentFeedbackError.value = '提交失败，请稍后重试。';
-    return;
-  }
-
+const onParentFeedbackSubmitted = () => {
   parentFeedbackVisible.value = false;
-  parentFeedbackComment.value = '';
+};
+
+const onNextChapter = () => {
+  emit('next-chapter');
+};
+
+const onBackToChapters = () => {
+  emit('back-to-chapters');
 };
 
 const onInteractiveWordClick = (payload: InteractiveClickPayload) => {
@@ -608,10 +606,6 @@ watch(
     currentIndex.value = 0;
     chapterCompletionRecorded.value = false;
     parentFeedbackVisible.value = false;
-    parentFeedbackChoice.value = '';
-    parentFeedbackComment.value = '';
-    parentFeedbackError.value = '';
-    parentFeedbackSubmitting.value = false;
     if (!props.active) return;
     const loaded = await loadChapter();
     if (loaded) {
@@ -648,53 +642,32 @@ watch(
           :interactiveSet="interactiveSet"
           @interactive-click="onInteractiveWordClick"
         />
+        <button
+          v-if="showNextChapterCta"
+          type="button"
+          class="next-chapter-btn"
+          @click="onNextChapter"
+        >
+          {{ nextChapterLabel }}
+        </button>
+        <button
+          v-if="showBackToChaptersCta"
+          type="button"
+          class="next-chapter-btn"
+          @click="onBackToChapters"
+        >
+          {{ backToChaptersLabel }}
+        </button>
       </div>
     </div>
     <ProgressBar :progress="progress" />
 
-    <div v-if="parentFeedbackVisible" class="parent-feedback-modal">
-      <div class="parent-feedback-modal__mask" aria-hidden="true"></div>
-      <div class="parent-feedback-modal__dialog" role="dialog" aria-modal="true">
-        <p class="parent-feedback-modal__title">家长反馈</p>
-        <p class="parent-feedback-modal__question">孩子喜欢这个章节吗？是否想继续听下一个故事？</p>
-
-        <div class="parent-feedback-modal__choices">
-          <button
-            type="button"
-            class="parent-feedback-modal__choice"
-            :class="{ 'parent-feedback-modal__choice--active': parentFeedbackChoice === 'yes' }"
-            @click="parentFeedbackChoice = 'yes'"
-          >
-            Yes
-          </button>
-          <button
-            type="button"
-            class="parent-feedback-modal__choice"
-            :class="{ 'parent-feedback-modal__choice--active': parentFeedbackChoice === 'no' }"
-            @click="parentFeedbackChoice = 'no'"
-          >
-            No
-          </button>
-        </div>
-
-        <textarea
-          v-model="parentFeedbackComment"
-          class="parent-feedback-modal__textarea"
-          rows="3"
-          placeholder="可填写简短评论（选填）"
-        ></textarea>
-
-        <p v-if="parentFeedbackError" class="parent-feedback-modal__error">{{ parentFeedbackError }}</p>
-        <button
-          type="button"
-          class="parent-feedback-modal__submit"
-          :disabled="!canSubmitParentFeedback || parentFeedbackSubmitting"
-          @click="onParentFeedbackSubmit"
-        >
-          {{ parentFeedbackSubmitting ? '提交中...' : '提交反馈' }}
-        </button>
-      </div>
-    </div>
+    <ParentFeedbackModal
+      :visible="parentFeedbackVisible"
+      :book-id="bookId"
+      :chapter-no="chapterNo"
+      @submitted="onParentFeedbackSubmitted"
+    />
   </section>
 </template>
 
@@ -729,6 +702,23 @@ watch(
   font-weight: 500;
 }
 
+.next-chapter-btn {
+  margin-top: 18px;
+  border: none;
+  border-radius: 999px;
+  background: var(--accent-strong);
+  color: #f8f6e6;
+  padding: 10px 18px;
+  font-size: 15px;
+  font-weight: 700;
+  font-family: "FZCuYuan", "Gotham Rounded";
+  box-shadow: 0 8px 20px rgba(var(--accent-rgb), 0.24);
+}
+
+.next-chapter-btn:active {
+  transform: translateY(1px);
+}
+
 .precache-progress {
   position: absolute;
   top: env(safe-area-inset-top);
@@ -754,102 +744,4 @@ watch(
   transition: width 160ms ease;
 }
 
-.parent-feedback-modal {
-  position: absolute;
-  inset: 0;
-  z-index: 15;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-}
-
-.parent-feedback-modal__mask {
-  position: absolute;
-  inset: 0;
-  background: rgba(47, 78, 11, 0.32);
-}
-
-.parent-feedback-modal__dialog {
-  position: relative;
-  z-index: 1;
-  width: min(90vw, 340px);
-  border-radius: 18px;
-  background: #f8f6e6;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.16);
-  padding: 18px 16px 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.parent-feedback-modal__title {
-  margin: 0;
-  color: var(--accent-strong);
-  font-size: 20px;
-  font-weight: 700;
-}
-
-.parent-feedback-modal__question {
-  margin: 0;
-  color: #32570f;
-  font-size: 14px;
-  line-height: 1.4;
-}
-
-.parent-feedback-modal__choices {
-  display: flex;
-  gap: 10px;
-}
-
-.parent-feedback-modal__choice {
-  flex: 1;
-  border-radius: 999px;
-  border: 2px solid rgba(var(--accent-rgb), 0.45);
-  background: #fff;
-  color: #32570f;
-  padding: 8px 10px;
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.parent-feedback-modal__choice--active {
-  border-color: var(--accent-strong);
-  background: rgba(var(--accent-rgb), 0.12);
-}
-
-.parent-feedback-modal__textarea {
-  width: 100%;
-  border-radius: 12px;
-  border: 1px solid rgba(var(--accent-rgb), 0.25);
-  padding: 10px;
-  font-size: 14px;
-  line-height: 1.5;
-  resize: none;
-}
-
-.parent-feedback-modal__textarea:focus {
-  outline: none;
-  border-color: rgba(var(--accent-rgb), 0.25);
-}
-
-.parent-feedback-modal__error {
-  margin: 0;
-  color: #bf3d1f;
-  font-size: 12px;
-}
-
-.parent-feedback-modal__submit {
-  border: none;
-  border-radius: 999px;
-  background: var(--accent-strong);
-  color: #f8f6e6;
-  padding: 10px;
-  font-size: 15px;
-  font-weight: 700;
-}
-
-.parent-feedback-modal__submit:disabled {
-  opacity: 0.5;
-}
 </style>

@@ -7,6 +7,7 @@ import { POPUP_VERSION } from '@/utils/popupVersion';
 
 type ModalState = 'closed' | 'consent' | 'question' | 'thanks';
 const SURVEY_VERSION = 'v3.1';
+const ENABLE_AUTO_POPUP = false;
 const SESSION_KEY = 'cp_survey_session';
 const CTA_KEY = 'cp_survey_cta';
 const COMPLETED_KEY = `cp_survey_completed_${SURVEY_VERSION}`;
@@ -145,6 +146,7 @@ const onSubmit = () => {
 };
 
 onMounted(() => {
+  if (!ENABLE_AUTO_POPUP) return;
   scheduleAutoPopup();
 });
 

@@ -6,6 +6,7 @@ import { POPUP_VERSION } from '@/utils/popupVersion';
 
 const SESSION_KEY = 'cp_survey_session';
 const CTA_KEY = 'cp_survey_cta';
+const SHOW_TRIAL_CTA = false;
 
 const getSessionId = () => {
   try {
@@ -72,7 +73,7 @@ const onCtaClick = () => {
           <p class="welcome-screen__copy-line">可以随时停止</p>
         </div>
       </div>
-      <button class="welcome-screen__cta" type="button" @click="onCtaClick">
+      <button v-if="SHOW_TRIAL_CTA" class="welcome-screen__cta" type="button" @click="onCtaClick">
         <span class="welcome-screen__cta-line">点击这里先看一下</span>
         <!-- <span class="welcome-screen__cta-line">可先试用1至2页看看</span> -->
       </button>
@@ -114,6 +115,7 @@ const onCtaClick = () => {
 }
 
 .welcome-screen__title-en {
+  display: none;
   font-size: 18px;
   font-weight: 700;
   font-family: "Gotham Rounded", "FZCuYuan";

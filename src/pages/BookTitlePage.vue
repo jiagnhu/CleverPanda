@@ -99,7 +99,7 @@ onMounted(async () => {
 <template>
   <section class="screen title-screen" aria-label="Book chapters">
     <div class="title-screen__content">
-      <h1 class="title-screen__en">{{ titleEnglish }}</h1>
+      <!-- <h1 class="title-screen__en">{{ titleEnglish }}</h1> -->
       <p class="title-screen__zh">{{ titleMandarin }}</p>
 
       <div v-if="chapters.length > 0" class="chapter-list" role="list" aria-label="Chapter list">
@@ -113,8 +113,8 @@ onMounted(async () => {
           @click="goReading(chapter.number)"
         >
           <div class="chapter-item__line chapter-item__line--en">
-            <p class="chapter-item__index">Chapter {{ chapter.number }}</p>
-            <p class="chapter-item__title-en">{{ chapter.titleEnglish }}</p>
+            <p class="chapter-item__index">第 {{ chapter.number }} 章</p>
+            <!-- <p class="chapter-item__title-en">{{ chapter.titleEnglish }}</p> -->
           </div>
           <span class="chapter-item__line chapter-item__line--zh">
             <span v-if="chapter.titleMandarin" class="chapter-item__title-zh">{{ chapter.titleMandarin }}</span>
@@ -123,7 +123,7 @@ onMounted(async () => {
         </button>
       </div>
       <p class="title-screen__hint">
-        {{ loading ? 'Loading...' : chapters.length > 0 ? 'Select a chapter to begin' : 'No chapters available' }}
+        {{ loading ? 'Loading...' : chapters.length > 0 ? '选择一个章节开始阅读' : '没有可用的章节' }}
       </p>
     </div>
   </section>
