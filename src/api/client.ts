@@ -5,8 +5,9 @@ const normalizeBaseUrl = (value: string) => {
 };
 
 const API_BASE_URL = normalizeBaseUrl(import.meta.env.VITE_API_BASE_URL || '');
+const DEV_API_PROXY_TARGET = normalizeBaseUrl(import.meta.env.VITE_DEV_API_PROXY_TARGET || '');
 
-if (import.meta.env.DEV && !API_BASE_URL) {
+if (import.meta.env.DEV && !API_BASE_URL && !DEV_API_PROXY_TARGET) {
   console.warn('[api] VITE_API_BASE_URL is empty. API calls will use relative /api paths.');
 }
 

@@ -2,7 +2,8 @@
   "demo": {
     "contentUrl": "/mock/alice/alice-001-ch1.json",
     "endPage": 6,
-    "targetBookId": "alice-001"
+    "targetBookId": "alice-001",
+    "targetChapterNo": 1
   },
   "books": [
     {

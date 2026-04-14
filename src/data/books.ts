@@ -2,6 +2,7 @@ export type DemoConfig = {
   contentUrl: string;
   endPage: number;
   targetBookId: string;
+  targetChapterNo?: number;
 };
 
 export type BookCatalogChapterRef = {

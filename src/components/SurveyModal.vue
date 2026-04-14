@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
+import { getOrCreateAnalyticsSessionId } from '@/analytics/identity';
 import { postJson } from '@/api/client';
 import { getSurveyEnv } from '@/utils/surveyEnv';
 import { getSurveySource } from '@/utils/surveySource';
@@ -8,7 +9,6 @@ import { POPUP_VERSION } from '@/utils/popupVersion';
 type ModalState = 'closed' | 'consent' | 'question' | 'thanks';
 const SURVEY_VERSION = 'v3.1';
 const ENABLE_AUTO_POPUP = false;
-const SESSION_KEY = 'cp_survey_session';
 const CTA_KEY = 'cp_survey_cta';
 const COMPLETED_KEY = `cp_survey_completed_${SURVEY_VERSION}`;
 const ANSWER_KEY = `cp_survey_answer_${SURVEY_VERSION}`;
@@ -24,21 +24,6 @@ let autoTimer: number | null = null;
 const isOpen = computed(() => modalState.value !== 'closed');
 const isThanks = computed(() => modalState.value === 'thanks');
 const canSubmit = computed(() => answer.value.replace(/\s+/g, '').length > 0);
-
-const getSessionId = () => {
-  try {
-    const existing = sessionStorage.getItem(SESSION_KEY);
-    if (existing) return existing;
-    const generated =
-      typeof crypto !== 'undefined' && 'randomUUID' in crypto
-        ? crypto.randomUUID()
-        : `s_${Date.now()}_${Math.random().toString(16).slice(2)}`;
-    sessionStorage.setItem(SESSION_KEY, generated);
-    return generated;
-  } catch {
-    return `s_${Date.now()}_${Math.random().toString(16).slice(2)}`;
-  }
-};
 
 const hasCtaClicked = () => {
   try {
@@ -125,7 +110,7 @@ const onSubmit = () => {
   void (async () => {
     const ok = await postFeedback({
       action: 'submit',
-      session_id: getSessionId(),
+      session_id: getOrCreateAnalyticsSessionId(),
       cta_clicked: hasCtaClicked() ? 1 : 0,
       answer: trimmed,
       source: getSurveySource(),

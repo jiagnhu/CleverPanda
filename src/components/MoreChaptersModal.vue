@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { onBeforeUnmount, ref, watch } from 'vue';
 import {
-  submitMoreChaptersResponse,
+  submitAnalyticsMoreChaptersResponse,
   type MoreChaptersResponse
-} from '@/tracking/behaviorTracker';
+} from '@/analytics/manager';
 
 type ModalStep = 'choice' | 'yes-contact' | 'no-feedback' | 'thanks' | 'yes-thanks';
 
@@ -54,7 +54,7 @@ watch(
 
 const submitResponse = async (response: MoreChaptersResponse, note = '') => {
   if (!props.bookId || !props.chapterNo) return false;
-  return submitMoreChaptersResponse(props.bookId, props.chapterNo, response, note);
+  return submitAnalyticsMoreChaptersResponse(props.bookId, props.chapterNo, response, note);
 };
 
 const onYes = async () => {

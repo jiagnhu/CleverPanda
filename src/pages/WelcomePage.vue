@@ -1,27 +1,12 @@
 <script setup lang="ts">
+import { getOrCreateAnalyticsSessionId } from '@/analytics/identity';
 import { postJson } from '@/api/client';
 import { getSurveyEnv } from '@/utils/surveyEnv';
 import { getSurveySource } from '@/utils/surveySource';
 import { POPUP_VERSION } from '@/utils/popupVersion';
 
-const SESSION_KEY = 'cp_survey_session';
 const CTA_KEY = 'cp_survey_cta';
 const SHOW_TRIAL_CTA = false;
-
-const getSessionId = () => {
-  try {
-    const existing = sessionStorage.getItem(SESSION_KEY);
-    if (existing) return existing;
-    const generated =
-      typeof crypto !== 'undefined' && 'randomUUID' in crypto
-        ? crypto.randomUUID()
-        : `s_${Date.now()}_${Math.random().toString(16).slice(2)}`;
-    sessionStorage.setItem(SESSION_KEY, generated);
-    return generated;
-  } catch {
-    return `s_${Date.now()}_${Math.random().toString(16).slice(2)}`;
-  }
-};
 
 const postFeedback = async (payload: Record<string, unknown>) => {
   try {
@@ -38,7 +23,7 @@ const onCtaClick = () => {
   } catch {}
   void postFeedback({
     action: 'cta',
-    session_id: getSessionId(),
+    session_id: getOrCreateAnalyticsSessionId(),
     cta_clicked: 1,
     source: getSurveySource(),
     env: getSurveyEnv(),

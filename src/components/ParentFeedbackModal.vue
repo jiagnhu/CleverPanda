@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
-import { submitParentFeedback, type ParentFeedbackChoice } from '@/tracking/behaviorTracker';
+import {
+  submitAnalyticsParentFeedback,
+  type ParentFeedbackChoice
+} from '@/analytics/manager';
 
 const props = withDefaults(
   defineProps<{
@@ -49,7 +52,7 @@ const onSubmit = async () => {
 
   submitting.value = true;
   error.value = '';
-  const ok = await submitParentFeedback(
+  const ok = await submitAnalyticsParentFeedback(
     props.bookId,
     props.chapterNo,
     normalizedChoice,

@@ -13,6 +13,8 @@ const router = useRouter();
 const demoConfig = ref<DemoConfig | null>(null);
 const demoContentUrl = computed(() => demoConfig.value?.contentUrl || '');
 const demoEndPage = computed(() => demoConfig.value?.endPage ?? null);
+const demoBookId = computed(() => demoConfig.value?.targetBookId || '');
+const demoChapterNo = computed(() => demoConfig.value?.targetChapterNo ?? 1);
 
 const clampIndex = (index: number) => Math.max(0, Math.min(index, slideCount - 1));
 const goTo = (index: number) => {
@@ -93,6 +95,8 @@ onMounted(async () => {
           :active="activeIndex === 3"
           :content-url="demoContentUrl"
           :demo-end-page="demoEndPage"
+          :book-id="demoBookId"
+          :chapter-no="demoChapterNo"
           @edge-prev="goPrev"
           @edge-next="goNext"
           @demo-complete="onDemoComplete"

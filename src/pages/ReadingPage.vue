@@ -1,14 +1,23 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vue';
+import {
+  buildInteractivePositionKey,
+  countChapterInteractivePositions,
+  createChapterContentVersion
+} from '@/analytics/contentMetrics';
+import {
+  initAnalyticsAppSession,
+  recordAnalyticsChapterCompleteOnce,
+  registerAnalyticsContentChapter,
+  trackAnalyticsPageView,
+  trackAnalyticsWordTap
+} from '@/analytics/manager';
+import { getOrCreateAnalyticsSessionId } from '@/analytics/identity';
 import BilingualLine from '@/components/BilingualLine.vue';
 import MoreChaptersModal from '@/components/MoreChaptersModal.vue';
 import ParentFeedbackModal from '@/components/ParentFeedbackModal.vue';
 import ProgressBar from '@/components/ProgressBar.vue';
 import { setAudioConfig, setUseLocalAudio } from '@/audio/player';
-import { createReadingTracker, getOrCreateReadingSessionId } from '@/tracking/readingTracker';
-import {
-  markChapterCompletedOnce
-} from '@/tracking/behaviorTracker';
 import { collectEnRichWords, parseEnRichLine } from '@/utils/enRich';
 import { canonicalize, tokenize } from '@/utils/tokenize';
 
@@ -45,6 +54,7 @@ const emit = defineEmits<{
 
 type ChapterItem = {
   id: string;
+  pageNo: number;
   zhLines: string[];
   enLines: string[];
 };
@@ -88,8 +98,12 @@ type RichChapterData = {
 };
 
 type NormalizedChapterData = {
+  bookId: string;
+  chapterNo: number | null;
   items: ChapterItem[];
   interactiveWords: string[];
+  contentVersion: string;
+  totalInteractivePositions: number;
   audio: {
     cacheKey: string;
     baseUrl: string;
@@ -128,6 +142,10 @@ const showBackToChaptersButton = computed(
 const interactiveSet = shallowRef<Set<string>>(new Set());
 const loading = ref(true);
 const loadError = ref('');
+const analyticsBookId = ref('');
+const analyticsChapterNo = ref<number | null>(null);
+const contentVersion = ref('');
+const totalInteractivePositions = ref(0);
 
 const audioBaseOverride = import.meta.env.VITE_AUDIO_BASE_URL;
 const buildStamp = typeof __BUILD_TIME__ === 'string' ? __BUILD_TIME__ : '';
@@ -139,11 +157,10 @@ const audioConfig = ref<{ cacheKey: string; baseUrl: string; manifest: Record<st
 });
 
 const hasLoaded = ref(false);
-const tracker = shallowRef<ReturnType<typeof createReadingTracker> | null>(null);
-const reachedSentence6 = ref(false);
 const chapterCompletionRecorded = ref(false);
 const parentFeedbackVisible = ref(false);
 const moreChaptersModalVisible = ref(false);
+const lastTrackedPageViewKey = ref('');
 const precacheStatus = ref<'idle' | 'downloading' | 'done' | 'error'>('idle');
 const precacheProgress = ref({ done: 0, total: 0 });
 const precachePercent = computed(() => {
@@ -222,6 +239,7 @@ const normalizeChapterData = (raw: unknown): NormalizedChapterData => {
       };
       return {
         id: legacyItem.id || `s${index + 1}`,
+        pageNo: index + 1,
         zhLines: toLineArray(legacyItem.zhLines),
         enLines: toLineArray(legacyItem.enRichLines ?? legacyItem.enLines)
       };
@@ -237,9 +255,20 @@ const normalizeChapterData = (raw: unknown): NormalizedChapterData => {
         });
       });
     }
+
+    const totalPositions = countChapterInteractivePositions(items, interactiveWords);
+    const normalizedBookId =
+      typeof (raw as { bookId?: unknown }).bookId === 'string' ? String((raw as { bookId?: unknown }).bookId) : '';
+    const normalizedChapterNo =
+      chapterPayload && typeof chapterPayload.number === 'number' ? chapterPayload.number : null;
+
     return {
+      bookId: normalizedBookId,
+      chapterNo: normalizedChapterNo,
       items,
       interactiveWords: Array.from(interactiveWords),
+      contentVersion: createChapterContentVersion(normalizedBookId, normalizedChapterNo ?? 0, items),
+      totalInteractivePositions: totalPositions,
       audio: normalizeChapterAudio(chapterPayload?.audio)
     };
   }
@@ -258,6 +287,7 @@ const normalizeChapterData = (raw: unknown): NormalizedChapterData => {
     const pageIndex = typeof page.page === 'number' ? page.page : index + 1;
     return {
       id: `p${pageIndex}`,
+      pageNo: pageIndex,
       zhLines,
       enLines
     };
@@ -272,9 +302,19 @@ const normalizeChapterData = (raw: unknown): NormalizedChapterData => {
     });
   });
 
+  const normalizedBookId =
+    typeof (raw as { bookId?: unknown }).bookId === 'string' ? String((raw as { bookId?: unknown }).bookId) : '';
+  const normalizedChapterNo =
+    chapterPayload && typeof chapterPayload.number === 'number' ? chapterPayload.number : null;
+  const totalPositions = countChapterInteractivePositions(items, interactiveWords);
+
   return {
+    bookId: normalizedBookId,
+    chapterNo: normalizedChapterNo,
     items,
     interactiveWords: Array.from(interactiveWords),
+    contentVersion: createChapterContentVersion(normalizedBookId, normalizedChapterNo ?? 0, items),
+    totalInteractivePositions: totalPositions,
     audio: normalizeChapterAudio(chapterPayload?.audio)
   };
 };
@@ -309,6 +349,9 @@ const getLastInteractiveTarget = (item: ChapterItem | null) => {
 
 const currentLastInteractiveTarget = computed(() => getLastInteractiveTarget(currentItem.value));
 
+const currentAnalyticsBookId = computed(() => analyticsBookId.value || props.bookId || '');
+const currentAnalyticsChapterNo = computed(() => analyticsChapterNo.value ?? props.chapterNo ?? null);
+
 const loadChapter = async () => {
   loading.value = true;
   loadError.value = '';
@@ -326,7 +369,23 @@ const loadChapter = async () => {
     items.value = data.items;
     currentIndex.value = 0;
     hasEmittedDemoComplete.value = false;
+    analyticsBookId.value = props.bookId || data.bookId;
+    analyticsChapterNo.value = props.chapterNo ?? data.chapterNo;
     interactiveSet.value = new Set(data.interactiveWords);
+    contentVersion.value = data.contentVersion;
+    totalInteractivePositions.value = data.totalInteractivePositions;
+    lastTrackedPageViewKey.value = '';
+
+    if (analyticsBookId.value && analyticsChapterNo.value && data.totalInteractivePositions > 0) {
+      registerAnalyticsContentChapter({
+        bookId: analyticsBookId.value,
+        chapterNo: analyticsChapterNo.value,
+        contentVersion: data.contentVersion,
+        totalInteractivePositions: data.totalInteractivePositions,
+        contentUrl: props.contentUrl
+      });
+    }
+
     if (data.audio) {
       const baseUrl = normalizeBaseUrl(audioBaseOverride || data.audio.baseUrl);
       const manifest = data.audio.manifest;
@@ -501,14 +560,8 @@ const onTouchCancel = () => {
   touchHorizontalLock = false;
 };
 
-const ensureTracker = () => {
-  if (tracker.value) return tracker.value;
-  tracker.value = createReadingTracker('/api/tracking.php');
-  return tracker.value;
-};
-
 const shouldMarkChapterComplete = (payload: InteractiveClickPayload) => {
-  if (!props.bookId || !props.chapterNo) return false;
+  if (!currentAnalyticsBookId.value || !currentAnalyticsChapterNo.value) return false;
   if (chapterCompletionRecorded.value) return false;
   if (!isLastPage.value) return false;
 
@@ -522,8 +575,12 @@ const shouldMarkChapterComplete = (payload: InteractiveClickPayload) => {
 };
 
 const onChapterCompleted = async () => {
-  if (!props.bookId || !props.chapterNo) return;
-  const result = await markChapterCompletedOnce(props.bookId, props.chapterNo);
+  if (!currentAnalyticsBookId.value || !currentAnalyticsChapterNo.value || !contentVersion.value) return;
+  const result = await recordAnalyticsChapterCompleteOnce(
+    currentAnalyticsBookId.value,
+    currentAnalyticsChapterNo.value,
+    contentVersion.value
+  );
   if (result === 'failed') return;
 
   chapterCompletionRecorded.value = true;
@@ -548,10 +605,10 @@ const onNextChapter = () => {
 const MORE_CHAPTERS_MODAL_SHOWN_PREFIX = 'cp_more_chapters_modal_shown';
 
 const getMoreChaptersModalShownKey = () => {
-  if (!props.bookId || !props.chapterNo) return '';
-  const sessionId = getOrCreateReadingSessionId();
+  if (!currentAnalyticsBookId.value || !currentAnalyticsChapterNo.value) return '';
+  const sessionId = getOrCreateAnalyticsSessionId();
   if (!sessionId) return '';
-  return `${MORE_CHAPTERS_MODAL_SHOWN_PREFIX}_${sessionId}_${props.bookId}_${props.chapterNo}`;
+  return `${MORE_CHAPTERS_MODAL_SHOWN_PREFIX}_${sessionId}_${currentAnalyticsBookId.value}_${currentAnalyticsChapterNo.value}`;
 };
 
 const hasShownMoreChaptersModalInSession = () => {
@@ -585,8 +642,46 @@ const onMoreChaptersExitHome = () => {
   emit('exit-home');
 };
 
+const trackCurrentPageView = () => {
+  if (!props.active || !hasLoaded.value || !currentItem.value) return;
+  if (!currentAnalyticsBookId.value || !currentAnalyticsChapterNo.value || !contentVersion.value) return;
+
+  // page_view 只需要记录“当前会话第一次进入这个页面”的事实，
+  // 不需要在同一页停留期间反复上报。
+  const pageKey = `${currentAnalyticsBookId.value}_${currentAnalyticsChapterNo.value}_${contentVersion.value}_${currentItem.value.pageNo}`;
+  if (lastTrackedPageViewKey.value === pageKey) return;
+
+  lastTrackedPageViewKey.value = pageKey;
+  trackAnalyticsPageView({
+    bookId: currentAnalyticsBookId.value,
+    chapterNo: currentAnalyticsChapterNo.value,
+    contentVersion: contentVersion.value,
+    pageNo: currentItem.value.pageNo,
+    // 当前页面的所有行都会同时展示，因此这里记录“当前页最后一行”
+    // 作为这个 page_view 对应的最远内容位置。
+    lineIndex: Math.max(currentItem.value.enLines.length - 1, 0)
+  });
+};
+
 const onInteractiveWordClick = (payload: InteractiveClickPayload) => {
-  tracker.value?.onWordClick();
+  if (currentItem.value && currentAnalyticsBookId.value && currentAnalyticsChapterNo.value && contentVersion.value) {
+    trackAnalyticsWordTap({
+      bookId: currentAnalyticsBookId.value,
+      chapterNo: currentAnalyticsChapterNo.value,
+      contentVersion: contentVersion.value,
+      pageNo: currentItem.value.pageNo,
+      lineIndex: payload.lineIndex,
+      interactiveIndexInLine: payload.interactiveIndexInLine,
+      positionKey: buildInteractivePositionKey(
+        currentItem.value.pageNo,
+        payload.lineIndex,
+        payload.interactiveIndexInLine
+      ),
+      word: payload.canonical,
+      chapterTotalInteractivePositions: totalInteractivePositions.value
+    });
+  }
+
   if (isLastPage.value && currentLastInteractiveTarget.value) {
     const isLastInteractiveClick =
       payload.lineIndex === currentLastInteractiveTarget.value.lineIndex &&
@@ -601,46 +696,30 @@ const onInteractiveWordClick = (payload: InteractiveClickPayload) => {
       }
     }
   }
+
   if (shouldMarkChapterComplete(payload)) {
     void onChapterCompleted();
   }
 };
 
-const onVisibilityChange = () => {
-  tracker.value?.onVisibilityChange();
-};
-
-const onPageHide = () => {
-  tracker.value?.flushBestEffort();
-};
-
 onMounted(() => {
+  initAnalyticsAppSession();
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.addEventListener('message', handleServiceWorkerMessage);
   }
-  document.addEventListener('visibilitychange', onVisibilityChange);
-  window.addEventListener('pagehide', onPageHide);
-  window.addEventListener('beforeunload', onPageHide);
 });
 
 onBeforeUnmount(() => {
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.removeEventListener('message', handleServiceWorkerMessage);
   }
-  document.removeEventListener('visibilitychange', onVisibilityChange);
-  window.removeEventListener('pagehide', onPageHide);
-  window.removeEventListener('beforeunload', onPageHide);
-  tracker.value?.dispose();
-  tracker.value = null;
 });
 
 watch(currentIndex, (index, prevIndex) => {
   if (index !== prevIndex) {
     lastPageNextChapterUnlocked.value = false;
   }
-  if (index < 5 || reachedSentence6.value) return;
-  reachedSentence6.value = true;
-  tracker.value?.onReachedSentence6();
+  trackCurrentPageView();
 });
 
 watch(
@@ -650,14 +729,8 @@ watch(
       const loaded = await loadChapter();
       if (loaded) {
         hasLoaded.value = true;
+        trackCurrentPageView();
       }
-    }
-    if (!hasLoaded.value) return;
-
-    const readingTracker = ensureTracker();
-    readingTracker.onPageActiveChange(active);
-    if (active && reachedSentence6.value) {
-      readingTracker.onReachedSentence6();
     }
   },
   { immediate: true }
@@ -673,10 +746,16 @@ watch(
     chapterCompletionRecorded.value = false;
     parentFeedbackVisible.value = false;
     moreChaptersModalVisible.value = false;
+    analyticsBookId.value = '';
+    analyticsChapterNo.value = null;
+    contentVersion.value = '';
+    totalInteractivePositions.value = 0;
+    lastTrackedPageViewKey.value = '';
     if (!props.active) return;
     const loaded = await loadChapter();
     if (loaded) {
       hasLoaded.value = true;
+      trackCurrentPageView();
     }
   }
 );
@@ -732,15 +811,15 @@ watch(
 
     <ParentFeedbackModal
       :visible="parentFeedbackVisible"
-      :book-id="bookId"
-      :chapter-no="chapterNo"
+      :book-id="currentAnalyticsBookId"
+      :chapter-no="currentAnalyticsChapterNo"
       @submitted="onParentFeedbackSubmitted"
     />
 
     <MoreChaptersModal
       :visible="moreChaptersModalVisible"
-      :book-id="bookId"
-      :chapter-no="chapterNo"
+      :book-id="currentAnalyticsBookId"
+      :chapter-no="currentAnalyticsChapterNo"
       @close="onMoreChaptersModalClose"
       @exit-home="onMoreChaptersExitHome"
     />
