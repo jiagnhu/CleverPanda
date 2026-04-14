@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import WelcomePage from '@/pages/WelcomePage.vue';
 import StartPage from '@/pages/StartPage.vue';
@@ -8,6 +8,7 @@ import ReadingPage from '@/pages/ReadingPage.vue';
 import { getDemoConfig, type DemoConfig } from '@/data/books';
 
 const slideCount = 4;
+const SWIPE_GUIDE_COMPLETED_KEY = 'cp_swipe_guide_completed_v1';
 const activeIndex = ref(0);
 const router = useRouter();
 const demoConfig = ref<DemoConfig | null>(null);
@@ -15,10 +16,36 @@ const demoContentUrl = computed(() => demoConfig.value?.contentUrl || '');
 const demoEndPage = computed(() => demoConfig.value?.endPage ?? null);
 const demoBookId = computed(() => demoConfig.value?.targetBookId || '');
 const demoChapterNo = computed(() => demoConfig.value?.targetChapterNo ?? 1);
+const showSwipeGuide = ref(false);
 
 const clampIndex = (index: number) => Math.max(0, Math.min(index, slideCount - 1));
+const hasCompletedSwipeGuide = () => {
+  try {
+    return localStorage.getItem(SWIPE_GUIDE_COMPLETED_KEY) === '1';
+  } catch {
+    return false;
+  }
+};
+
+const markSwipeGuideCompleted = () => {
+  try {
+    localStorage.setItem(SWIPE_GUIDE_COMPLETED_KEY, '1');
+  } catch {}
+};
+
+const hideSwipeGuide = () => {
+  showSwipeGuide.value = false;
+};
+
 const goTo = (index: number) => {
-  activeIndex.value = clampIndex(index);
+  const nextIndex = clampIndex(index);
+  if (activeIndex.value === 0 && nextIndex > 0) {
+    markSwipeGuideCompleted();
+  }
+  if (index !== activeIndex.value) {
+    hideSwipeGuide();
+  }
+  activeIndex.value = nextIndex;
 };
 const goNext = () => goTo(activeIndex.value + 1);
 const goPrev = () => goTo(activeIndex.value - 1);
@@ -28,6 +55,11 @@ const SWIPE_MAX_TIME = 600;
 let touchStartX = 0;
 let touchStartY = 0;
 let touchStartTime = 0;
+
+const showSwipeGuideIfNeeded = () => {
+  if (hasCompletedSwipeGuide()) return;
+  showSwipeGuide.value = true;
+};
 
 const onTouchStart = (event: TouchEvent) => {
   if (event.touches.length !== 1) return;
@@ -60,6 +92,12 @@ const onTouchCancel = () => {
   touchStartTime = 0;
 };
 
+const onStartReading = () => {
+  markSwipeGuideCompleted();
+  hideSwipeGuide();
+  goTo(slideCount - 1);
+};
+
 const onDemoComplete = () => {
   const bookId = demoConfig.value?.targetBookId;
   if (!bookId) {
@@ -71,6 +109,11 @@ const onDemoComplete = () => {
 
 onMounted(async () => {
   demoConfig.value = await getDemoConfig();
+  showSwipeGuideIfNeeded();
+});
+
+onBeforeUnmount(() => {
+  hideSwipeGuide();
 });
 </script>
 
@@ -81,7 +124,7 @@ onMounted(async () => {
       :style="{ transform: `translateX(-${activeIndex * 100}%)` }"
     >
       <div class="slide-module__slide">
-        <WelcomePage />
+        <WelcomePage :show-swipe-guide="showSwipeGuide && activeIndex === 0" @start-reading="onStartReading" />
       </div>
       <div class="slide-module__slide">
         <StartPage @next="goNext" />
