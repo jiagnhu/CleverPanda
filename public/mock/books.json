@@ -1,4 +1,7 @@
 {
+  "onboardingDemo": {
+    "contentUrl": "/mock/onboarding/onboarding.json"
+  },
   "demo": {
     "contentUrl": "/mock/alice/alice-001-ch1.json",
     "endPage": 6,

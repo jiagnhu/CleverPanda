@@ -1,5 +1,6 @@
 import { postJson } from '@/api/client';
 import { getOrCreateAnonymousUserId, getOrCreateReadingSessionId } from '@/tracking/readingTracker';
+import { getAnalyticsIdentity } from '@/analytics/identity';
 
 const LAST_VISIT_AT_KEY = 'cp_last_visit_at';
 const RETURN_VISIT_PROCESSED_KEY = 'cp_return_visit_processed_session';
@@ -183,4 +184,29 @@ export const submitMoreChaptersResponse = async (
     more_chapters_note: normalizedNote,
     event_at: new Date().toISOString()
   });
+};
+
+export type OnboardingPageResult = {
+  pageIndex: number;
+  targetWord: string;
+  wordsTapped: string[];
+  totalTaps: number;
+  firstTapMs: number | null;
+  hesitationMs: number | null;
+};
+
+export const trackOnboardingPageResult = (result: OnboardingPageResult): void => {
+  const { sessionId, anonymousUserId } = getAnalyticsIdentity();
+  void postJson('/api/behavior_events.php', {
+    event_type: 'onboarding_interaction',
+    session_id: sessionId,
+    anonymous_user_id: anonymousUserId,
+    page_index: result.pageIndex,
+    target_word: result.targetWord,
+    words_tapped: result.wordsTapped,
+    total_taps: result.totalTaps,
+    first_tap_ms: result.firstTapMs,
+    hesitation_ms: result.hesitationMs,
+    event_at: new Date().toISOString()
+  }).catch(() => undefined);
 };

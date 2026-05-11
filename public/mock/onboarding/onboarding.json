@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "cp-book-v1",
+  "chapter": [
+    {
+      "number": 1,
+      "pages": [
+        {
+          "page": 1,
+          "zh": "猫 坐 在 垫 子 上",
+          "enRich": "THE {g|CAT} sat on THE MAT",
+          "targetWord": "cat"
+        },
+        {
+          "page": 2,
+          "zh": "狗 跑 得 很 快",
+          "enRich": "THE {g|DOG} runs fast",
+          "targetWord": "dog"
+        },
+        {
+          "page": 3,
+          "zh": "男 孩 有 一 个 球",
+          "enRich": "{g|THE} {g|BOY} {g|has} {g|A} {g|BALL}",
+          "targetWord": "all"
+        }
+      ]
+    }
+  ]
+}

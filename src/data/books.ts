@@ -16,7 +16,12 @@ export type BookCatalogEntry = {
   chapters: BookCatalogChapterRef[];
 };
 
+export type OnboardingDemoConfig = {
+  contentUrl: string;
+};
+
 export type BookCatalog = {
+  onboardingDemo?: OnboardingDemoConfig;
   demo?: DemoConfig;
   books: BookCatalogEntry[];
 };
@@ -56,6 +61,11 @@ export const fetchBookCatalog = async (): Promise<BookCatalog | null> => {
 export const getDemoConfig = async (): Promise<DemoConfig | null> => {
   const catalog = await fetchBookCatalog();
   return catalog?.demo ?? null;
+};
+
+export const getOnboardingDemoConfig = async (): Promise<OnboardingDemoConfig | null> => {
+  const catalog = await fetchBookCatalog();
+  return catalog?.onboardingDemo ?? null;
 };
 
 export const getBookEntry = async (bookId: string): Promise<BookCatalogEntry | null> => {

@@ -184,7 +184,7 @@ if ($eventAt === null) {
   $eventAt = date('Y-m-d H:i:s');
 }
 
-if (!in_array($eventType, ['return_visit', 'chapter_complete', 'parent_feedback', 'more_chapters_response'], true)) {
+if (!in_array($eventType, ['return_visit', 'chapter_complete', 'parent_feedback', 'more_chapters_response', 'onboarding_interaction'], true)) {
   http_response_code(400);
   respond_error('invalid_event_type');
   exit;
@@ -301,7 +301,38 @@ try {
 try {
   $pdo->beginTransaction();
 
-  if ($eventType === 'return_visit') {
+  if ($eventType === 'onboarding_interaction') {
+    $pageIndex = isset($data['page_index']) ? (int)$data['page_index'] : 0;
+    $targetWord = isset($data['target_word']) ? trim((string)$data['target_word']) : '';
+    $wordsTapped = isset($data['words_tapped']) && is_array($data['words_tapped'])
+      ? $data['words_tapped']
+      : [];
+    $totalTaps = isset($data['total_taps']) ? (int)$data['total_taps'] : 0;
+    $firstTapMs = isset($data['first_tap_ms']) && $data['first_tap_ms'] !== null
+      ? (int)$data['first_tap_ms']
+      : null;
+    $hesitationMs = isset($data['hesitation_ms']) && $data['hesitation_ms'] !== null
+      ? (int)$data['hesitation_ms']
+      : null;
+
+    $stmt = $pdo->prepare(
+      'INSERT INTO onboarding_events
+        (session_id, anonymous_user_id, page_index, target_word, words_tapped, total_taps, first_tap_ms, hesitation_ms, event_at, created_at)
+       VALUES
+        (:session_id, :anonymous_user_id, :page_index, :target_word, :words_tapped, :total_taps, :first_tap_ms, :hesitation_ms, :event_at, NOW())'
+    );
+    $stmt->execute([
+      ':session_id'        => $sessionId,
+      ':anonymous_user_id' => $anonymousUserId,
+      ':page_index'        => $pageIndex,
+      ':target_word'       => $targetWord !== '' ? $targetWord : null,
+      ':words_tapped'      => json_encode($wordsTapped, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+      ':total_taps'        => $totalTaps,
+      ':first_tap_ms'      => $firstTapMs,
+      ':hesitation_ms'     => $hesitationMs,
+      ':event_at'          => $eventAt,
+    ]);
+  } elseif ($eventType === 'return_visit') {
     $stmt = $pdo->prepare(
       'INSERT INTO behavior_events
         (event_type, session_id, anonymous_user_id, hours_since_last_visit, days_since_last_visit, event_at, created_at, updated_at)
