@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref } from 'vue';
-import { playWord } from '@/audio/player';
 import { canonicalize, tokenize } from '@/utils/tokenize';
 import { parseEnRichLine, type WordColor } from '@/utils/enRich';
 
@@ -86,7 +85,6 @@ const onActivate = (canonical: string, index: number) => {
     canonical,
     interactiveIndexInLine
   });
-  playWord(canonical);
 };
 
 onBeforeUnmount(() => {

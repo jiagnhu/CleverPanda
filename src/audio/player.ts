@@ -8,10 +8,18 @@ let voicesInitialized = false;
 let useLocalAudio = true;
 let audioBaseUrl = '/audio/';
 let audioManifest: Record<string, string> = {};
+let removeCompletionListener: (() => void) | null = null;
 
 type AudioConfig = {
   baseUrl?: string;
   manifest?: Record<string, string> | null;
+};
+
+type AudioPlaybackMode = 'local' | 'speech';
+
+type AudioPlaybackOptions = {
+  onStarted?: (mode: AudioPlaybackMode) => void;
+  onCompleted?: (mode: 'local') => void;
 };
 
 function normalizeBaseUrl(url: string): string {
@@ -79,7 +87,7 @@ export function setAudioConfig(config: AudioConfig): void {
   }
 }
 
-function speakFallback(word: string): void {
+function speakFallback(word: string, options?: AudioPlaybackOptions): void {
   if (!('speechSynthesis' in window)) return;
   initVoices();
   window.speechSynthesis.cancel();
@@ -89,6 +97,7 @@ function speakFallback(word: string): void {
     utterance.voice = preferredVoice;
   }
   window.speechSynthesis.speak(utterance);
+  options?.onStarted?.('speech');
 }
 
 function tryPlayAudio(audioEl: HTMLAudioElement, src: string): Promise<void> {
@@ -132,7 +141,7 @@ function tryPlayAudio(audioEl: HTMLAudioElement, src: string): Promise<void> {
   });
 }
 
-export async function playWord(word: string): Promise<void> {
+export async function playWord(word: string, options?: AudioPlaybackOptions): Promise<void> {
   const now = Date.now();
   if (now - lastPlayTime < THROTTLE_MS) return;
   lastPlayTime = now;
@@ -150,23 +159,42 @@ export async function playWord(word: string): Promise<void> {
       audio.pause();
       audio.currentTime = 0;
     }
-    speakFallback(canonical);
+    speakFallback(canonical, options);
     return;
   }
 
   const fileName = audioManifest[canonical];
   if (!fileName) {
-    speakFallback(canonical);
+    speakFallback(canonical, options);
     return;
   }
   const src = `${audioBaseUrl}${fileName}`;
 
   const audioEl = getAudio();
+  if (removeCompletionListener) {
+    removeCompletionListener();
+    removeCompletionListener = null;
+  }
   audioEl.pause();
   audioEl.currentTime = 0;
+
+  const onEnded = () => {
+    removeCompletionListener = null;
+    options?.onCompleted?.('local');
+  };
+  audioEl.addEventListener('ended', onEnded, { once: true });
+  removeCompletionListener = () => {
+    audioEl.removeEventListener('ended', onEnded);
+  };
+
   try {
     await tryPlayAudio(audioEl, src);
+    options?.onStarted?.('local');
   } catch {
-    speakFallback(canonical);
+    if (removeCompletionListener) {
+      removeCompletionListener();
+      removeCompletionListener = null;
+    }
+    speakFallback(canonical, options);
   }
 }

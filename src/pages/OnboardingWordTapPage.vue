@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
+import { playWord } from '@/audio/player';
 import BilingualLine from '@/components/BilingualLine.vue';
 import { trackOnboardingPageResult } from '@/tracking/behaviorTracker';
 
@@ -58,6 +59,7 @@ const onInteractiveClick = (payload: { canonical: string; lineIndex: number; int
   if (!wordsTapped.value.includes(payload.canonical)) {
     wordsTapped.value = [...wordsTapped.value, payload.canonical];
   }
+  void playWord(payload.canonical);
 };
 </script>
 

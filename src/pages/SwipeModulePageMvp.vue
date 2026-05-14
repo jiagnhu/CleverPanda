@@ -5,6 +5,7 @@ import WelcomePage from '@/pages/WelcomePage.vue';
 import OnboardingWordTapPage from '@/pages/OnboardingWordTapPage.vue';
 import AliceTitlePage from '@/pages/AliceTitlePage.vue';
 import { getDemoConfig, getOnboardingDemoConfig } from '@/data/books';
+import { trackAnalyticsContinuationAction } from '@/analytics/manager';
 
 const SWIPE_GUIDE_COMPLETED_KEY = 'cp_swipe_guide_completed_v1';
 
@@ -82,12 +83,24 @@ const goNext = () => goTo(activeIndex.value + 1);
 const goPrev = () => goTo(activeIndex.value - 1);
 
 const onStartReading = () => {
+  trackAnalyticsContinuationAction({
+    action: 'start_reading_click',
+    targetBookId: storyBookId.value,
+    targetChapterNo: storyChapterNo.value,
+    flow: 'mvp_onboarding'
+  });
   markSwipeGuideCompleted();
   hideSwipeGuide();
   goTo(1);
 };
 
 const onAliceStart = () => {
+  trackAnalyticsContinuationAction({
+    action: 'onboarding_to_story_click',
+    targetBookId: storyBookId.value,
+    targetChapterNo: storyChapterNo.value,
+    flow: 'mvp_onboarding'
+  });
   void router.push({
     name: 'book-title',
     params: {

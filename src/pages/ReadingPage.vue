@@ -9,7 +9,13 @@ import {
   initAnalyticsAppSession,
   recordAnalyticsChapterCompleteOnce,
   registerAnalyticsContentChapter,
+  trackAnalyticsAudioPlayCompleted,
+  trackAnalyticsAudioPlayStarted,
+  trackAnalyticsContentLoadFailed,
+  trackAnalyticsContinuationAction,
   trackAnalyticsPageView,
+  trackAnalyticsPageDwell,
+  trackAnalyticsSessionInterrupted,
   trackAnalyticsWordTap
 } from '@/analytics/manager';
 import { getOrCreateAnalyticsSessionId } from '@/analytics/identity';
@@ -17,7 +23,7 @@ import BilingualLine from '@/components/BilingualLine.vue';
 import MoreChaptersModal from '@/components/MoreChaptersModal.vue';
 import ParentFeedbackModal from '@/components/ParentFeedbackModal.vue';
 import ProgressBar from '@/components/ProgressBar.vue';
-import { setAudioConfig, setUseLocalAudio } from '@/audio/player';
+import { playWord, setAudioConfig, setUseLocalAudio } from '@/audio/player';
 import { collectEnRichWords, parseEnRichLine } from '@/utils/enRich';
 import { canonicalize, tokenize } from '@/utils/tokenize';
 
@@ -177,6 +183,15 @@ let touchStartY = 0;
 let touchStartTime = 0;
 let touchHorizontalLock = false;
 const hasEmittedDemoComplete = ref(false);
+let pageDwellStartedAt: number | null = null;
+let pageDwellAccumulatedMs = 0;
+let pageDwellContext: {
+  bookId: string;
+  chapterNo: number;
+  contentVersion: string;
+  pageNo: number;
+} | null = null;
+let interruptionTracked = false;
 
 type InteractiveClickPayload = {
   canonical: string;
@@ -352,15 +367,65 @@ const currentLastInteractiveTarget = computed(() => getLastInteractiveTarget(cur
 const currentAnalyticsBookId = computed(() => analyticsBookId.value || props.bookId || '');
 const currentAnalyticsChapterNo = computed(() => analyticsChapterNo.value ?? props.chapterNo ?? null);
 
+const getPageDwellContext = () => {
+  if (!props.active || !hasLoaded.value || !currentItem.value) return null;
+  if (!currentAnalyticsBookId.value || !currentAnalyticsChapterNo.value || !contentVersion.value) return null;
+  return {
+    bookId: currentAnalyticsBookId.value,
+    chapterNo: currentAnalyticsChapterNo.value,
+    contentVersion: contentVersion.value,
+    pageNo: currentItem.value.pageNo
+  };
+};
+
+const canAccumulatePageDwell = () => {
+  if (typeof document === 'undefined') return false;
+  return document.visibilityState === 'visible' && getPageDwellContext() !== null;
+};
+
+const startPageDwell = () => {
+  if (!canAccumulatePageDwell() || pageDwellStartedAt !== null) return;
+  pageDwellContext = getPageDwellContext();
+  pageDwellStartedAt = Date.now();
+};
+
+const stopPageDwell = () => {
+  if (pageDwellStartedAt === null) return;
+  const delta = Date.now() - pageDwellStartedAt;
+  pageDwellStartedAt = null;
+  if (delta > 0) {
+    pageDwellAccumulatedMs += delta;
+  }
+};
+
+const flushPageDwell = (bestEffort = false) => {
+  stopPageDwell();
+  if (!pageDwellContext || pageDwellAccumulatedMs <= 0) return;
+  trackAnalyticsPageDwell({
+    ...pageDwellContext,
+    dwellMs: pageDwellAccumulatedMs,
+    bestEffort
+  });
+  pageDwellContext = null;
+  pageDwellAccumulatedMs = 0;
+};
+
+const restartPageDwell = () => {
+  flushPageDwell();
+  startPageDwell();
+};
+
 const loadChapter = async () => {
   loading.value = true;
   loadError.value = '';
   let loaded = false;
+  let responseStatus: number | undefined;
   try {
     const chapterUrl = cacheBust
       ? `${props.contentUrl}${props.contentUrl.includes('?') ? '&' : '?'}v=${encodeURIComponent(buildStamp)}`
       : props.contentUrl;
     const response = await fetch(chapterUrl, { cache: 'no-store' });
+    responseStatus = response.status;
     if (!response.ok) {
       throw new Error(`Request failed: ${response.status}`);
     }
@@ -417,6 +482,14 @@ const loadChapter = async () => {
     setAudioConfig({ baseUrl: '', manifest: {} });
     setUseLocalAudio(false);
     precacheStatus.value = 'error';
+    trackAnalyticsContentLoadFailed({
+      bookId: props.bookId || analyticsBookId.value,
+      chapterNo: props.chapterNo ?? analyticsChapterNo.value,
+      contentUrl: props.contentUrl,
+      source: 'reading_page',
+      message: error instanceof Error ? error.message : 'unknown_error',
+      status: responseStatus
+    });
   } finally {
     loading.value = false;
   }
@@ -599,6 +672,13 @@ const onParentFeedbackSubmitted = () => {
 
 const onNextChapter = () => {
   if (!nextChapterEnabled.value) return;
+  if (currentAnalyticsBookId.value && currentAnalyticsChapterNo.value) {
+    trackAnalyticsContinuationAction({
+      action: 'next_chapter_click',
+      bookId: currentAnalyticsBookId.value,
+      chapterNo: currentAnalyticsChapterNo.value
+    });
+  }
   emit('next-chapter');
 };
 
@@ -665,21 +745,53 @@ const trackCurrentPageView = () => {
 
 const onInteractiveWordClick = (payload: InteractiveClickPayload) => {
   if (currentItem.value && currentAnalyticsBookId.value && currentAnalyticsChapterNo.value && contentVersion.value) {
+    const bookId = currentAnalyticsBookId.value;
+    const chapterNo = currentAnalyticsChapterNo.value;
+    const version = contentVersion.value;
+    const pageNo = currentItem.value.pageNo;
+    const positionKey = buildInteractivePositionKey(
+      pageNo,
+      payload.lineIndex,
+      payload.interactiveIndexInLine
+    );
     trackAnalyticsWordTap({
-      bookId: currentAnalyticsBookId.value,
-      chapterNo: currentAnalyticsChapterNo.value,
-      contentVersion: contentVersion.value,
-      pageNo: currentItem.value.pageNo,
+      bookId,
+      chapterNo,
+      contentVersion: version,
+      pageNo,
       lineIndex: payload.lineIndex,
       interactiveIndexInLine: payload.interactiveIndexInLine,
-      positionKey: buildInteractivePositionKey(
-        currentItem.value.pageNo,
-        payload.lineIndex,
-        payload.interactiveIndexInLine
-      ),
+      positionKey,
       word: payload.canonical,
       chapterTotalInteractivePositions: totalInteractivePositions.value
     });
+
+    void playWord(payload.canonical, {
+      onStarted: (audioMode) => {
+        trackAnalyticsAudioPlayStarted({
+          bookId,
+          chapterNo,
+          contentVersion: version,
+          pageNo,
+          positionKey,
+          word: payload.canonical,
+          audioMode
+        });
+      },
+      onCompleted: (audioMode) => {
+        trackAnalyticsAudioPlayCompleted({
+          bookId,
+          chapterNo,
+          contentVersion: version,
+          pageNo,
+          positionKey,
+          word: payload.canonical,
+          audioMode
+        });
+      }
+    });
+  } else {
+    void playWord(payload.canonical);
   }
 
   if (isLastPage.value && currentLastInteractiveTarget.value) {
@@ -702,36 +814,77 @@ const onInteractiveWordClick = (payload: InteractiveClickPayload) => {
   }
 };
 
+const trackInterruptionIfNeeded = (reason: string) => {
+  if (interruptionTracked || chapterCompletionRecorded.value) return;
+  const context = getPageDwellContext() ?? pageDwellContext;
+  if (!context) return;
+  interruptionTracked = true;
+  trackAnalyticsSessionInterrupted({
+    ...context,
+    reason
+  });
+};
+
+const onPageVisibilityChange = () => {
+  if (typeof document === 'undefined') return;
+  if (document.visibilityState === 'visible') {
+    startPageDwell();
+    return;
+  }
+  stopPageDwell();
+};
+
+const onReadingPageHide = () => {
+  flushPageDwell(true);
+  trackInterruptionIfNeeded('pagehide');
+};
+
 onMounted(() => {
   initAnalyticsAppSession();
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.addEventListener('message', handleServiceWorkerMessage);
   }
+  document.addEventListener('visibilitychange', onPageVisibilityChange);
+  window.addEventListener('pagehide', onReadingPageHide);
+  window.addEventListener('beforeunload', onReadingPageHide);
 });
 
 onBeforeUnmount(() => {
+  flushPageDwell();
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.removeEventListener('message', handleServiceWorkerMessage);
   }
+  document.removeEventListener('visibilitychange', onPageVisibilityChange);
+  window.removeEventListener('pagehide', onReadingPageHide);
+  window.removeEventListener('beforeunload', onReadingPageHide);
 });
 
 watch(currentIndex, (index, prevIndex) => {
   if (index !== prevIndex) {
+    restartPageDwell();
     lastPageNextChapterUnlocked.value = false;
   }
   trackCurrentPageView();
+  startPageDwell();
 });
 
 watch(
   () => props.active,
   async (active) => {
+    if (!active) {
+      flushPageDwell();
+      return;
+    }
     if (active && !hasLoaded.value) {
       const loaded = await loadChapter();
       if (loaded) {
         hasLoaded.value = true;
         trackCurrentPageView();
+        startPageDwell();
       }
+      return;
     }
+    startPageDwell();
   },
   { immediate: true }
 );
@@ -739,11 +892,13 @@ watch(
 watch(
   () => props.contentUrl,
   async () => {
+    flushPageDwell();
     hasLoaded.value = false;
     items.value = [];
     currentIndex.value = 0;
     lastPageNextChapterUnlocked.value = false;
     chapterCompletionRecorded.value = false;
+    interruptionTracked = false;
     parentFeedbackVisible.value = false;
     moreChaptersModalVisible.value = false;
     analyticsBookId.value = '';
@@ -756,6 +911,7 @@ watch(
     if (loaded) {
       hasLoaded.value = true;
       trackCurrentPageView();
+      startPageDwell();
     }
   }
 );

@@ -29,6 +29,29 @@ export type WordTapPayload = {
 export type ParentFeedbackChoice = 'yes' | 'no';
 export type MoreChaptersResponse = 'yes' | 'no';
 export type ChapterCompletionResult = 'recorded' | 'already' | 'failed';
+export type ContinuationAction =
+  | 'start_reading_click'
+  | 'onboarding_to_story_click'
+  | 'next_chapter_click';
+
+type ContentEventType =
+  | 'page_dwell'
+  | 'audio_play_started'
+  | 'audio_play_completed'
+  | 'content_load_failed'
+  | 'session_interrupted';
+
+type ContentEventPayload = {
+  type: ContentEventType;
+  book_id?: string;
+  chapter_no?: number;
+  content_version?: string;
+  page_no?: number;
+  position_key?: string;
+  word?: string;
+  payload?: Record<string, unknown>;
+  event_at: string;
+};
 
 type AnalyticsEventPayload =
   | {
@@ -76,7 +99,15 @@ type AnalyticsEventPayload =
       response: MoreChaptersResponse;
       note: string;
       event_at: string;
-    };
+    }
+  | {
+      type: ContinuationAction;
+      book_id?: string;
+      chapter_no?: number;
+      payload?: Record<string, unknown>;
+      event_at: string;
+    }
+  | ContentEventPayload;
 
 type SyncPayload = {
   action: 'sync_session';
@@ -441,6 +472,159 @@ export const trackAnalyticsWordTap = (payload: WordTapPayload) => {
   if (pendingWordTapCount >= CLICK_FLUSH_THRESHOLD) {
     void flush();
   }
+};
+
+const pushContentEvent = (event: Omit<ContentEventPayload, 'event_at'>, flushImmediately = false) => {
+  initAnalyticsAppSession();
+  pendingEvents.push({
+    ...event,
+    event_at: nowIso()
+  });
+  if (flushImmediately) {
+    void flush();
+  }
+};
+
+export const trackAnalyticsPageDwell = (payload: {
+  bookId: string;
+  chapterNo: number;
+  contentVersion: string;
+  pageNo: number;
+  dwellMs: number;
+  bestEffort?: boolean;
+}) => {
+  if (!payload.bookId.trim() || payload.chapterNo <= 0 || payload.pageNo <= 0 || payload.dwellMs <= 0) return;
+
+  pushContentEvent({
+    type: 'page_dwell',
+    book_id: payload.bookId,
+    chapter_no: payload.chapterNo,
+    content_version: payload.contentVersion,
+    page_no: payload.pageNo,
+    payload: {
+      dwell_ms: Math.floor(payload.dwellMs)
+    }
+  });
+
+  if (payload.bestEffort) {
+    flushBestEffort();
+  }
+};
+
+export const trackAnalyticsContinuationAction = (payload: {
+  action: ContinuationAction;
+  bookId?: string;
+  chapterNo?: number | null;
+  targetBookId?: string;
+  targetChapterNo?: number | null;
+  flow?: string;
+}) => {
+  initAnalyticsAppSession();
+  pendingEvents.push({
+    type: payload.action,
+    book_id: payload.bookId,
+    chapter_no: payload.chapterNo ?? undefined,
+    payload: {
+      target_book_id: payload.targetBookId,
+      target_chapter_no: payload.targetChapterNo,
+      flow: payload.flow
+    },
+    event_at: nowIso()
+  });
+  void flush();
+};
+
+export const trackAnalyticsAudioPlayStarted = (payload: {
+  bookId: string;
+  chapterNo: number;
+  contentVersion: string;
+  pageNo: number;
+  positionKey: string;
+  word: string;
+  audioMode: 'local' | 'speech';
+}) => {
+  if (!payload.bookId.trim() || payload.chapterNo <= 0 || payload.pageNo <= 0 || !payload.positionKey.trim()) return;
+  pushContentEvent({
+    type: 'audio_play_started',
+    book_id: payload.bookId,
+    chapter_no: payload.chapterNo,
+    content_version: payload.contentVersion,
+    page_no: payload.pageNo,
+    position_key: payload.positionKey,
+    word: payload.word,
+    payload: {
+      audio_mode: payload.audioMode
+    }
+  });
+};
+
+export const trackAnalyticsAudioPlayCompleted = (payload: {
+  bookId: string;
+  chapterNo: number;
+  contentVersion: string;
+  pageNo: number;
+  positionKey: string;
+  word: string;
+  audioMode: 'local';
+}) => {
+  if (!payload.bookId.trim() || payload.chapterNo <= 0 || payload.pageNo <= 0 || !payload.positionKey.trim()) return;
+  pushContentEvent({
+    type: 'audio_play_completed',
+    book_id: payload.bookId,
+    chapter_no: payload.chapterNo,
+    content_version: payload.contentVersion,
+    page_no: payload.pageNo,
+    position_key: payload.positionKey,
+    word: payload.word,
+    payload: {
+      audio_mode: payload.audioMode
+    }
+  });
+};
+
+export const trackAnalyticsContentLoadFailed = (payload: {
+  bookId?: string;
+  chapterNo?: number | null;
+  contentUrl?: string;
+  source: string;
+  message?: string;
+  status?: number;
+}) => {
+  pushContentEvent(
+    {
+      type: 'content_load_failed',
+      book_id: payload.bookId,
+      chapter_no: payload.chapterNo ?? undefined,
+      payload: {
+        content_url: payload.contentUrl,
+        source: payload.source,
+        message: payload.message,
+        status: payload.status
+      }
+    },
+    true
+  );
+};
+
+export const trackAnalyticsSessionInterrupted = (payload: {
+  bookId: string;
+  chapterNo: number;
+  contentVersion: string;
+  pageNo: number;
+  reason: string;
+}) => {
+  if (!payload.bookId.trim() || payload.chapterNo <= 0 || payload.pageNo <= 0) return;
+  pushContentEvent({
+    type: 'session_interrupted',
+    book_id: payload.bookId,
+    chapter_no: payload.chapterNo,
+    content_version: payload.contentVersion,
+    page_no: payload.pageNo,
+    payload: {
+      reason: payload.reason
+    }
+  });
+  flushBestEffort();
 };
 
 /**

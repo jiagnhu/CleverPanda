@@ -1059,6 +1059,14 @@ if ($activeDurationDeltaMs < 0) {
 $allowedEventTypes = [
   'word_tap',
   'page_view',
+  'page_dwell',
+  'audio_play_started',
+  'audio_play_completed',
+  'start_reading_click',
+  'onboarding_to_story_click',
+  'next_chapter_click',
+  'content_load_failed',
+  'session_interrupted',
   'chapter_complete',
   'parent_feedback',
   'more_chapters_response'
