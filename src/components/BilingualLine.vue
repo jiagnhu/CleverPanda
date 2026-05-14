@@ -52,7 +52,7 @@ const onInteractiveClick = (
 }
 
 .bilingual__zh {
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 700;
   letter-spacing: 0.08em;
   font-family: "FZCuYuan", "Gotham Rounded";

@@ -8,21 +8,55 @@
           "page": 1,
           "zh": "猫 坐 在 垫 子 上",
           "enRich": "THE {g|CAT} sat on THE MAT",
-          "targetWord": "cat"
+          "targetWord": "cat",
+          "ctaLabel": "继续",
+          "ctaAction": "next"
         },
         {
           "page": 2,
           "zh": "狗 跑 得 很 快",
           "enRich": "THE {g|DOG} runs fast",
-          "targetWord": "dog"
+          "targetWord": "dog",
+          "ctaLabel": "继续",
+          "ctaAction": "next"
         },
         {
           "page": 3,
           "zh": "男 孩 有 一 个 球",
           "enRich": "{g|THE} {g|BOY} {g|has} {g|A} {g|BALL}",
-          "targetWord": "all"
+          "targetWord": "all",
+          "ctaLabel": "继续",
+          "ctaAction": "next"
+        },
+        {
+          "page": 4,
+          "titleEn": "Alice's Adventures\nin Wonderland",
+          "titleZh": "爱丽丝梦游仙境",
+          "zh": "爱 丽 丝 坐 在 姐 姐 身 边",
+          "enRich": "{g|Alice} {g|sat} {g|beside} {g|her} {g|sister}",
+          "targetWord": "all",
+          "ctaLabel": "继续",
+          "ctaAction": "start"
         }
-      ]
+      ],
+      "audio": {
+        "cacheKey": "alice-onboarding",
+        "baseUrl": "/audio/demo/onboarding/",
+        "manifest": {
+          "cat": "cat.v1.mp3",
+          "dog": "dog.v1.mp3",
+          "the": "the.v1.mp3",
+          "boy": "boy.v1.mp3",
+          "has": "has.v1.mp3",
+          "a": "a.v1.mp3",
+          "ball": "ball.v1.mp3",
+          "alice": "alice.v1.mp3",
+          "sat": "sat.v1.mp3",
+          "beside": "beside.v1.mp3",
+          "her": "her.v1.mp3",
+          "sister": "sister.v1.mp3"
+        }
+      }
     }
   ]
 }

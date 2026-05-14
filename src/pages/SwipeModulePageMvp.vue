@@ -3,11 +3,67 @@ import { onBeforeUnmount, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import WelcomePage from '@/pages/WelcomePage.vue';
 import OnboardingWordTapPage from '@/pages/OnboardingWordTapPage.vue';
-import AliceTitlePage from '@/pages/AliceTitlePage.vue';
 import { getDemoConfig, getOnboardingDemoConfig } from '@/data/books';
 import { trackAnalyticsContinuationAction } from '@/analytics/manager';
+import { setAudioConfig, setUseLocalAudio } from '@/audio/player';
 
 const SWIPE_GUIDE_COMPLETED_KEY = 'cp_swipe_guide_completed_v1';
+
+type OnboardingChapterAudio = {
+  cacheKey?: string;
+  baseUrl?: string;
+  manifest?: Record<string, string>;
+};
+
+type OnboardingChapterPayload = {
+  pages?: OnboardingPageJson[];
+  audio?: OnboardingChapterAudio;
+};
+
+type OnboardingPageJson = {
+  zh?: string;
+  enRich?: string;
+  targetWord?: string;
+  titleEn?: string;
+  titleZh?: string;
+  ctaLabel?: string;
+  ctaAction?: 'next' | 'start';
+};
+
+const normalizeBaseUrl = (url: string) => (url.endsWith('/') ? url : `${url}/`);
+
+/** 与 ReadingPage 一致：把 onboarding.json 里 chapter.audio 写入全局 player，否则 playWord 读不到 manifest */
+const applyOnboardingChapterAudio = (chapterPayload: OnboardingChapterPayload | undefined) => {
+  const audio = chapterPayload?.audio;
+  if (!audio || typeof audio.baseUrl !== 'string' || !audio.baseUrl.trim()) {
+    setAudioConfig({ baseUrl: '', manifest: {} });
+    setUseLocalAudio(false);
+    return;
+  }
+  const sourceManifest = audio.manifest;
+  if (!sourceManifest || typeof sourceManifest !== 'object') {
+    setAudioConfig({ baseUrl: '', manifest: {} });
+    setUseLocalAudio(false);
+    return;
+  }
+  const manifestEntries = Object.entries(sourceManifest).filter(
+    ([key, value]) => typeof key === 'string' && key.trim() && typeof value === 'string' && value.trim()
+  );
+  if (!manifestEntries.length) {
+    setAudioConfig({ baseUrl: '', manifest: {} });
+    setUseLocalAudio(false);
+    return;
+  }
+  const override =
+    typeof import.meta.env.VITE_AUDIO_BASE_URL === 'string' ? import.meta.env.VITE_AUDIO_BASE_URL.trim() : '';
+  const rawBase = override || audio.baseUrl.trim();
+  const baseUrl = normalizeBaseUrl(rawBase);
+  setAudioConfig({
+    baseUrl,
+    manifest: Object.fromEntries(manifestEntries.map(([k, v]) => [k.trim().toLowerCase(), v.trim()]))
+  });
+  setUseLocalAudio(true);
+};
 
 const activeIndex = ref(0);
 const router = useRouter();
@@ -16,13 +72,17 @@ const storyBookId = ref('alice-001');
 const storyChapterNo = ref(1);
 
 type OnboardingPage = {
+  titleEn?: string;
+  titleZh?: string;
+  ctaLabel?: string;
+  ctaAction?: 'next' | 'start';
   zh: string;
   enRich: string;
   targetWord: string;
 };
 
 const onboardingPages = ref<OnboardingPage[]>([]);
-const slideCount = ref(2); // Welcome + AliceTitle; grows after onboarding loads
+const slideCount = ref(1); // Welcome only until onboarding JSON loads
 
 const loadOnboarding = async () => {
   const [config, demoConfig] = await Promise.all([getOnboardingDemoConfig(), getDemoConfig()]);
@@ -35,16 +95,23 @@ const loadOnboarding = async () => {
     const res = await fetch(config.contentUrl, { cache: 'no-store' });
     if (!res.ok) return;
     const data = await res.json() as {
-      chapter?: Array<{
-        pages?: Array<{ zh?: string; enRich?: string; targetWord?: string }>;
-      }>;
+      chapter?: OnboardingChapterPayload | OnboardingChapterPayload[];
     };
     const chapter = Array.isArray(data.chapter) ? data.chapter[0] : data.chapter;
     const pages = chapter?.pages ?? [];
     onboardingPages.value = pages
       .filter((p) => p.zh && p.enRich)
-      .map((p) => ({ zh: p.zh!, enRich: p.enRich!, targetWord: p.targetWord ?? '' }));
-    slideCount.value = 1 + onboardingPages.value.length + 1; // Welcome + pages + AliceTitle
+      .map((p) => ({
+        titleEn: p.titleEn,
+        titleZh: p.titleZh,
+        ctaLabel: p.ctaLabel,
+        ctaAction: p.ctaAction,
+        zh: p.zh!,
+        enRich: p.enRich!,
+        targetWord: p.targetWord ?? ''
+      }));
+    slideCount.value = 1 + onboardingPages.value.length; // Welcome + onboarding pages (incl. transition)
+    applyOnboardingChapterAudio(chapter);
   } catch {}
 };
 
@@ -102,9 +169,10 @@ const onAliceStart = () => {
     flow: 'mvp_onboarding'
   });
   void router.push({
-    name: 'book-title',
+    name: 'book-reading',
     params: {
-      bookId: storyBookId.value
+      bookId: storyBookId.value,
+      chapterNo: String(storyChapterNo.value)
     }
   });
 };
@@ -175,20 +243,21 @@ onBeforeUnmount(() => {
         />
       </div>
 
-      <!-- Slides 1-N: Onboarding word tap pages (loaded from JSON) -->
+      <!-- Slides 1-N: Onboarding from JSON -->
       <div v-for="(page, i) in onboardingPages" :key="i" class="slide-module__slide">
         <OnboardingWordTapPage
           :zh="page.zh"
           :en-rich="page.enRich"
           :target-word="page.targetWord"
           :page-index="i + 1"
+          :title-en="page.titleEn"
+          :title-zh="page.titleZh"
+          :cta-label="page.ctaLabel"
+          :cta-action="page.ctaAction"
           :active="activeIndex === i + 1"
+          @next="goNext"
+          @start="onAliceStart"
         />
-      </div>
-
-      <!-- Final onboarding slide: Alice title transition -->
-      <div class="slide-module__slide">
-        <AliceTitlePage @start="onAliceStart" />
       </div>
     </div>
   </main>

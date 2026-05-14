@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 const routes = [
   { path: '/', name: 'module', component: () => import('@/pages/SwipeModulePageMvp.vue') },
-  { path: '/mvp', name: 'module-mvp', component: () => import('@/pages/SwipeModulePageMvp.vue') },
+  { path: '/mvp', name: 'module-mvp', component: () => import('@/pages/SwipeModulePage.vue') },
   { path: '/legacy', name: 'module-legacy', component: () => import('@/pages/SwipeModulePage.vue') },
   {
     path: '/books/:bookId/success',
