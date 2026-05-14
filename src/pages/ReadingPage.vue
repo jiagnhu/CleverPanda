@@ -24,6 +24,7 @@ import MoreChaptersModal from '@/components/MoreChaptersModal.vue';
 import ParentFeedbackModal from '@/components/ParentFeedbackModal.vue';
 import ProgressBar from '@/components/ProgressBar.vue';
 import { playWord, setAudioConfig, setUseLocalAudio } from '@/audio/player';
+import { buildAudioPrecacheUrls } from '@/audio/swPrecache';
 import { collectEnRichWords, parseEnRichLine } from '@/utils/enRich';
 import { canonicalize, tokenize } from '@/utils/tokenize';
 
@@ -496,16 +497,8 @@ const loadChapter = async () => {
   return loaded;
 };
 
-const buildAudioUrls = () => {
-  if (!audioConfig.value.baseUrl) return [];
-  const fileNames = Array.from(
-    new Set(Object.values(audioConfig.value.manifest).filter((fileName) => typeof fileName === 'string' && fileName))
-  );
-  if (!fileNames.length) return [];
-
-  const base = new URL(audioConfig.value.baseUrl, window.location.origin);
-  return fileNames.map((fileName) => new URL(fileName, base).toString());
-};
+const buildAudioUrls = () =>
+  buildAudioPrecacheUrls(audioConfig.value.baseUrl, audioConfig.value.manifest);
 
 const requestPrecache = async () => {
   if (precacheStatus.value === 'downloading' || precacheStatus.value === 'done') {

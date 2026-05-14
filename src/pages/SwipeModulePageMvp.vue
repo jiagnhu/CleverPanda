@@ -6,6 +6,7 @@ import OnboardingWordTapPage from '@/pages/OnboardingWordTapPage.vue';
 import { getDemoConfig, getOnboardingDemoConfig } from '@/data/books';
 import { trackAnalyticsContinuationAction } from '@/analytics/manager';
 import { setAudioConfig, setUseLocalAudio } from '@/audio/player';
+import { buildAudioPrecacheUrls, requestSwAudioPrecache } from '@/audio/swPrecache';
 
 const SWIPE_GUIDE_COMPLETED_KEY = 'cp_swipe_guide_completed_v1';
 
@@ -33,18 +34,20 @@ type OnboardingPageJson = {
 const normalizeBaseUrl = (url: string) => (url.endsWith('/') ? url : `${url}/`);
 
 /** 与 ReadingPage 一致：把 onboarding.json 里 chapter.audio 写入全局 player，否则 playWord 读不到 manifest */
-const applyOnboardingChapterAudio = (chapterPayload: OnboardingChapterPayload | undefined) => {
+const applyOnboardingChapterAudio = (
+  chapterPayload: OnboardingChapterPayload | undefined
+): { baseUrl: string; manifest: Record<string, string>; cacheKey: string } | null => {
   const audio = chapterPayload?.audio;
   if (!audio || typeof audio.baseUrl !== 'string' || !audio.baseUrl.trim()) {
     setAudioConfig({ baseUrl: '', manifest: {} });
     setUseLocalAudio(false);
-    return;
+    return null;
   }
   const sourceManifest = audio.manifest;
   if (!sourceManifest || typeof sourceManifest !== 'object') {
     setAudioConfig({ baseUrl: '', manifest: {} });
     setUseLocalAudio(false);
-    return;
+    return null;
   }
   const manifestEntries = Object.entries(sourceManifest).filter(
     ([key, value]) => typeof key === 'string' && key.trim() && typeof value === 'string' && value.trim()
@@ -52,17 +55,21 @@ const applyOnboardingChapterAudio = (chapterPayload: OnboardingChapterPayload | 
   if (!manifestEntries.length) {
     setAudioConfig({ baseUrl: '', manifest: {} });
     setUseLocalAudio(false);
-    return;
+    return null;
   }
   const override =
     typeof import.meta.env.VITE_AUDIO_BASE_URL === 'string' ? import.meta.env.VITE_AUDIO_BASE_URL.trim() : '';
   const rawBase = override || audio.baseUrl.trim();
   const baseUrl = normalizeBaseUrl(rawBase);
+  const manifest = Object.fromEntries(manifestEntries.map(([k, v]) => [k.trim().toLowerCase(), v.trim()]));
   setAudioConfig({
     baseUrl,
-    manifest: Object.fromEntries(manifestEntries.map(([k, v]) => [k.trim().toLowerCase(), v.trim()]))
+    manifest
   });
   setUseLocalAudio(true);
+  const cacheKey =
+    typeof audio.cacheKey === 'string' && audio.cacheKey.trim() ? audio.cacheKey.trim() : 'default';
+  return { baseUrl, manifest, cacheKey };
 };
 
 const activeIndex = ref(0);
@@ -111,7 +118,11 @@ const loadOnboarding = async () => {
         targetWord: p.targetWord ?? ''
       }));
     slideCount.value = 1 + onboardingPages.value.length; // Welcome + onboarding pages (incl. transition)
-    applyOnboardingChapterAudio(chapter);
+    const appliedAudio = applyOnboardingChapterAudio(chapter);
+    if (appliedAudio) {
+      const urls = buildAudioPrecacheUrls(appliedAudio.baseUrl, appliedAudio.manifest);
+      void requestSwAudioPrecache(urls, appliedAudio.cacheKey);
+    }
   } catch {}
 };
 
